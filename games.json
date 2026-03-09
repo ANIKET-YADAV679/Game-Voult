@@ -1,0 +1,88 @@
+{
+    "siteName": "Game Voult",
+    "version": "1.0.0",
+    "lastUpdated": "2024-01-01",
+    "games": [
+        {
+            "id": "tic-tac-toe",
+            "title": "Tic Tac Toe",
+            "description": "Classic two-player game of X and O. Get three in a row to win!",
+            "category": "two-player",
+            "players": 2,
+            "status": "coming-soon",
+            "path": "games/tic-tac-toe/index.html",
+            "thumbnail": "assets/images/tic-tac-toe.png"
+        },
+        {
+            "id": "snake",
+            "title": "Snake",
+            "description": "Guide your snake to eat food and grow longer. Don't hit the walls or yourself!",
+            "category": "single-player",
+            "players": 1,
+            "status": "coming-soon",
+            "path": "games/snake/index.html",
+            "thumbnail": "assets/images/snake.png"
+        },
+        {
+            "id": "connect-four",
+            "title": "Connect Four",
+            "description": "Drop colored discs and connect four in a row to win!",
+            "category": "two-player",
+            "players": 2,
+            "status": "coming-soon",
+            "path": "games/connect-four/index.html",
+            "thumbnail": "assets/images/connect-four.png"
+        },
+        {
+            "id": "chess-bot",
+            "title": "Chess vs Bot",
+            "description": "Challenge our AI bot in a classic game of chess",
+            "category": "bot-opponent",
+            "players": 1,
+            "status": "coming-soon",
+            "path": "games/chess-bot/index.html",
+            "thumbnail": "assets/images/chess.png"
+        },
+        {
+            "id": "pong",
+            "title": "Pong",
+            "description": "The classic arcade game. Play against a friend or the computer!",
+            "category": "two-player",
+            "players": 2,
+            "status": "coming-soon",
+            "path": "games/pong/index.html",
+            "thumbnail": "assets/images/pong.png"
+        },
+        {
+            "id": "memory-game",
+            "title": "Memory Match",
+            "description": "Find all matching pairs of cards in this memory game",
+            "category": "single-player",
+            "players": 1,
+            "status": "coming-soon",
+            "path": "games/memory-game/index.html",
+            "thumbnail": "assets/images/memory.png"
+        }
+    ],
+    "categories": [
+        {
+            "id": "single-player",
+            "name": "Single Player",
+            "description": "Challenge yourself with our solo games",
+            "icon": "user"
+        },
+        {
+            "id": "two-player",
+            "name": "Two Player",
+            "description": "Play with a friend on the same device",
+            "icon": "users"
+        },
+        {
+            "id": "bot-opponent",
+            "name": "Bot Opponent",
+            "description": "Test your skills against AI opponents",
+            "icon": "bot"
+        }
+    ]
+}
+
