@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chess vs Bot - Game Voult">
+    <title>Chess vs Bot | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .game-container { background: #1a1a24; border-radius: 20px; padding: 30px; border: 1px solid #2a2a3a; text-align: center; }
+        .game-title { font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .game-info { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+        .info-box { background: #252532; padding: 10px 20px; border-radius: 10px; }
+        .info-label { font-size: 0.8rem; color: #a0a0b0; }
+        .info-value { font-size: 1.5rem; font-weight: bold; color: #00d4ff; }
+        .chess-board { display: grid; grid-template-columns: repeat(8, 50px); grid-template-rows: repeat(8, 50px); margin: 20px auto; border: 5px solid #5a4a3a; }
+        .square { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 35px; cursor: pointer; }
+        .white { background: #f0d9b5; } .black { background: #b58863; }
+        .selected { box-shadow: inset 0 0 0 3px #00d4ff; }
+        .hint { opacity: 0.5; }
+        .status { margin-top: 15px; color: #a0a0b0; font-size: 1.1rem; }
+        .btn-restart { margin-top: 15px; padding: 12px 30px; font-size: 1rem; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); border: none; border-radius: 10px; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo"><img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon"><span class="logo-text">Game Voult</span></a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+            <ul class="nav-links"><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul>
+        </div>
+    </nav>
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Chess vs Bot</h1>
+            <div class="game-info">
+                <div class="info-box"><div class="info-label">Turn</div><div class="info-value" id="turn">You</div></div>
+            </div>
+            <div class="chess-board" id="board"></div>
+            <div class="status" id="status">Click a piece to move</div>
+            <button class="btn-restart" onclick="initGame()">New Game</button>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section"><h3>Game Voult</h3><p>Your ultimate destination for classic browser games.</p></div>
+            <div class="footer-section"><h4>Quick Links</h4><ul><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul></div>
+            <div class="footer-section"><h4>Categories</h4><ul><li><a href="../../categories.html?category=single-player">Single Player</a></li><li><a href="../../categories.html?category=two-player">Two Player</a></li><li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li></ul></div>
+            <div class="footer-section"><h4>Connect</h4><div class="social-links"><a href="#">Twitter</a><a href="#">Facebook</a><a href="#">GitHub</a></div></div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2024 Game Voult. All rights reserved.</p></div>
+    </footer>
+    <script>
+        const PIECES = {K:'♔',Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+        const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
+        let board = [], selected = null, turn = 'white', gameOver = false;
+        
+        function parseFEN(fen) {
+            board = [];
+            fen.split('/').forEach(row => {
+                const newRow = [];
+                for(let c of row) {
+                    if(c>='1'&&c<='8') newRow.push(...Array(parseInt(c)).fill(null));
+                    else newRow.push(c);
+                }
+                board.push(newRow);
+            });
+        }
+        
+        function initGame() {
+            parseFEN(START_FEN);
+            turn = 'white'; selected = null; gameOver = false;
+            document.getElementById('turn').textContent = 'You';
+            document.getElementById('status').textContent = 'Click a piece to move';
+            drawBoard();
+        }
+        
+        function drawBoard() {
+            const container = document.getElementById('board');
+            container.innerHTML = '';
+            for(let r=0;r<8;r++) {
+                for(let c=0;c<8;c++) {
+                    const sq = document.createElement('div');
+                    sq.className = 'square ' + ((r+c)%2 ? 'black' : 'white');
+                    if(selected && selected.r===r && selected.c===c) sq.classList.add('selected');
+                    const piece = board[r][c];
+                    if(piece) {
+                        sq.textContent = PIECES[piece];
+                        if(piece === piece.toUpperCase() && turn==='white') sq.style.color = '#333';
+                        else if(piece === piece.toLowerCase() && turn==='black') sq.style.color = '#333';
+                    }
+                    sq.onclick = () => clickSquare(r,c);
+                    container.appendChild(sq);
+                }
+            }
+        }
+        
+        function clickSquare(r,c) {
+            if(gameOver) return;
+            const piece = board[r][c];
+            const isWhitePiece = piece && piece === piece.toUpperCase();
+            const isBlackPiece = piece && piece === piece.toLowerCase();
+            
+            if(!selected) {
+                if(turn==='white' && isWhitePiece) selected = {r,c};
+                else if(turn==='black' && isBlackPiece) selected = {r,c};
+            } else {
+                if(selected.r===r && selected.c===c) selected = null;
+                else if(isValidMove(selected.r,selected.c,r,c)) {
+                    movePiece(selected.r,selected.c,r,c);
+                    selected = null;
+                    if(!gameOver) {
+                        turn = turn==='white'?'black':'white';
+                        document.getElementById('turn').textContent = turn==='white'?'You':'Bot';
+                        document.getElementById('status').textContent = turn==='white'?'Your turn':'Bot thinking...';
+                        if(turn==='black') { setTimeout(botMove, 500); }
+                    }
+                } else if(turn==='white' && isWhitePiece) selected = {r,c};
+                else if(turn==='black' && isBlackPiece) selected = {r,c};
+                else selected = null;
+            }
+            drawBoard();
+        }
+        
+        function isValidMove(fromR,fromC,toR,toC) {
+            const piece = board[fromR][fromC];
+            const target = board[toR][toC];
+            if(target && (target===target.toUpperCase())===(piece===piece.toUpperCase())) return false;
+            
+            const dr = toR - fromR, dc = toC - fromC;
+            const type = piece.toUpperCase();
+            
+            if(type==='P') {
+                const dir = piece==='P'?-1:1;
+                if(dc===0 && !target && (toR-fromR===dir || (fromR===(piece==='P'?6:1) && toR-fromR===2*dir && !board[fromR+dir][fromC]))) return true;
+                if(Math.abs(dc)===1 && dr===dir && target) return true;
+                return false;
+            }
+            if(type==='N') return (Math.abs(dr)===2 && Math.abs(dc)===1) || (Math.abs(dr)===1 && Math.abs(dc)===2);
+            if(type==='B') return Math.abs(dr)===Math.abs(dc) && isPathClear(fromR,fromC,toR,toC);
+            if(type==='R') return (dr===0 || dc===0) && isPathClear(fromR,fromC,toR,toC);
+            if(type==='Q') return (Math.abs(dr)===Math.abs(dc) || dr===0 || dc===0) && isPathClear(fromR,fromC,toR,toC);
+            if(type==='K') return Math.abs(dr)<=1 && Math.abs(dc)<=1;
+            return false;
+        }
+        
+        function isPathClear(r1,c1,r2,c2) {
+            const dr = Math.sign(r2-r1), dc = Math.sign(c2-c1);
+            let r=r1+dr, c=c1+dc;
+            while(r!==r2 || c!==c2) { if(board[r][c]) return false; r+=dr; c+=dc; }
+            return true;
+        }
+        
+        function movePiece(fromR,fromC,toR,toC) {
+            const piece = board[fromR][fromC];
+            board[toR][toC] = piece;
+            board[fromR][fromC] = null;
+            
+            // Pawn promotion
+            if(type==='P' && (toR===0 || toR===7)) board[toR][toC] = piece==='P'?'Q':'q';
+            
+            // Check for checkmate
+            if(isInCheck(turn==='white'?'black':'white')) {
+                document.getElementById('status').textContent = 'Check!';
+            }
+        }
+        
+        function isInCheck(color) {
+            let kingPos;
+            for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+                if(board[r][c] && board[r][c]===(color==='white'?'K':'k')) kingPos = {r,c};
+            }
+            if(!kingPos) return true;
+            for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+                const piece = board[r][c];
+                if(piece && (piece===piece.toUpperCase())!==(color==='white')) {
+                    if(isValidMove(r,c,kingPos.r,kingPos.c)) return true;
+                }
+            }
+            return false;
+        }
+        
+        function botMove() {
+            if(gameOver) return;
+            const moves = [];
+            for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+                const p = board[r][c];
+                if(p && p===p.toLowerCase()) {
+                    for(let tr=0;tr<8;tr++) for(let tc=0;tc<8;tc++) {
+                        if(isValidMove(r,c,tr,tc)) moves.push({from:{r,c},to:{r:tr,c:tc},piece:p});
+                    }
+                }
+            }
+            
+            if(moves.length===0) { gameOver=true; document.getElementById('status').textContent = 'You Win!'; return; }
+            
+            const move = moves[Math.floor(Math.random()*moves.length)];
+            movePiece(move.from.r,move.from.c,move.to.r,move.to.c);
+            turn = 'white';
+            document.getElementById('turn').textContent = 'You';
+            document.getElementById('status').textContent = 'Your turn';
+            drawBoard();
+        }
+        
+        initGame();
+    </script>
+</body>
+</html>
+
+

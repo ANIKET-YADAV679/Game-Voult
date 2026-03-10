@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bubble Shooter - Game Voult">
+    <title>Bubble Shooter | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .game-container { background: #1a1a24; border-radius: 20px; padding: 30px; border: 1px solid #2a2a3a; text-align: center; }
+        .game-title { font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .game-info { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+        .info-box { background: #252532; padding: 10px 20px; border-radius: 10px; }
+        .info-label { font-size: 0.8rem; color: #a0a0b0; }
+        .info-value { font-size: 1.5rem; font-weight: bold; color: #00d4ff; }
+        #gameCanvas { border: 3px solid #3a3a4a; border-radius: 10px; background: #0a0a0f; }
+        .controls { margin-top: 15px; color: #a0a0b0; font-size: 0.9rem; }
+        .btn-restart { margin-top: 15px; padding: 12px 30px; font-size: 1rem; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); border: none; border-radius: 10px; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo"><img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon"><span class="logo-text">Game Voult</span></a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+            <ul class="nav-links"><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul>
+        </div>
+    </nav>
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Bubble Shooter</h1>
+            <div class="game-info">
+                <div class="info-box"><div class="info-label">Score</div><div class="info-value" id="score">0</div></div>
+                <div class="info-box"><div class="info-label">Level</div><div class="info-value" id="level">1</div></div>
+            </div>
+            <canvas id="gameCanvas" width="400" height="500"></canvas>
+            <div class="controls"><strong>Mouse:</strong> Aim & Click to Shoot</div>
+            <button class="btn-restart" onclick="initGame()">New Game</button>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section"><h3>Game Voult</h3><p>Your ultimate destination for classic browser games.</p></div>
+            <div class="footer-section"><h4>Quick Links</h4><ul><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul></div>
+            <div class="footer-section"><h4>Categories</h4><ul><li><a href="../../categories.html?category=single-player">Single Player</a></li><li><a href="../../categories.html?category=two-player">Two Player</a></li><li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li></ul></div>
+            <div class="footer-section"><h4>Connect</h4><div class="social-links"><a href="#">Twitter</a><a href="#">Facebook</a><a href="#">GitHub</a></div></div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2024 Game Voult. All rights reserved.</p></div>
+    </footer>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const COLS = 8, ROWS = 10, BUBBLE_R = 20;
+        const COLORS = ['#ff4444','#44ff44','#4444ff','#ffff44','#ff44ff','#44ffff'];
+        let bubbles = [], bullet = null, score = 0, level = 1, gameRunning = false, angle = -Math.PI/2;
+        
+        function initBubbles() {
+            bubbles = [];
+            for(let r=0; r<5; r++) {
+                for(let c=0; c<COLS; c++) {
+                    if(r%2===1 && c===COLS-1) continue;
+                    bubbles.push({x: c*BUBBLE_R*2+BUBBLE_R+(r%2?BUBBLE_R:0), y: r*BUBBLE_R*1.7+BUBBLE_R, color: COLORS[Math.floor(Math.random()*COLORS.length)], row: r, col: c});
+                }
+            }
+        }
+        
+        function drawBubble(x, y, color) {
+            ctx.beginPath(); ctx.arc(x, y, BUBBLE_R-2, 0, Math.PI*2);
+            const grad = ctx.createRadialGradient(x-5,y-5,0,x,y,BUBBLE_R);
+            grad.addColorStop(0, '#fff'); grad.addColorStop(0.3, color); grad.addColorStop(1, color);
+            ctx.fillStyle = grad; ctx.fill(); ctx.strokeStyle = '#333'; ctx.stroke();
+        }
+        
+        function draw() {
+            ctx.fillStyle = '#0a0a0f'; ctx.fillRect(0,0,canvas.width,canvas.height);
+            bubbles.forEach(b => drawBubble(b.x, b.y, b.color));
+            if(bullet) drawBubble(bullet.x, bullet.y, bullet.color);
+            // Shooter
+            ctx.fillStyle = '#666'; ctx.fillRect(canvas.width/2-30, canvas.height-40, 60, 30);
+            ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height-25, 20, 0, Math.PI*2);
+            ctx.fillStyle = bullet ? bullet.color : COLORS[0]; ctx.fill();
+            // Aim line
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.setLineDash([5,5]);
+            ctx.beginPath(); ctx.moveTo(canvas.width/2, canvas.height-25);
+            ctx.lineTo(canvas.width/2 + Math.cos(angle)*100, canvas.height-25 + Math.sin(angle)*100);
+            ctx.stroke(); ctx.setLineDash([]);
+        }
+        
+        function shoot() {
+            if(bullet) return;
+            bullet = {x: canvas.width/2, y: canvas.height-25, color: COLORS[Math.floor(Math.random()*COLORS.length)], dx: Math.cos(angle)*8, dy: Math.sin(angle)*8};
+        }
+        
+        function update() {
+            if(!gameRunning) return;
+            if(bullet) {
+                bullet.x += bullet.dx; bullet.y += bullet.dy;
+                if(bullet.x<BUBBLE_R||bullet.x>canvas.width-BUBBLE_R) bullet.dx *= -1;
+                if(bullet.y<BUBBLE_R) { snapBubble(); }
+            }
+            draw();
+            if(gameRunning) requestAnimationFrame(update);
+        }
+        
+        function snapBubble() {
+            let row = Math.floor(bullet.y / (BUBBLE_R*1.7));
+            let col = Math.floor((bullet.x - (row%2?BUBBLE_R:0)) / (BUBBLE_R*2));
+            if(row<0) row = 0;
+            const newBubble = {x: col*BUBBLE_R*2+BUBBLE_R+(row%2?BUBBLE_R:0), y: row*BUBBLE_R*1.7+BUBBLE_R, color: bullet.color, row, col};
+            bubbles.push(newBubble);
+            
+            // Check matches
+            const matches = findMatches(newBubble);
+            if(matches.length >= 3) {
+                matches.forEach(b => { bubbles = bubbles.filter(x => x !== b); });
+                score += matches.length * 10;
+                document.getElementById('score').textContent = score;
+            }
+            
+            bullet = null;
+            if(bubbles.some(b => b.y > canvas.height-100)) { gameRunning = false; alert('Game Over! Score: '+score); }
+        }
+        
+        function findMatches(bubble) {
+            const matches = [bubble];
+            const stack = [bubble];
+            while(stack.length) {
+                const current = stack.pop();
+                bubbles.forEach(b => {
+                    if(!matches.includes(b) && b.color === current.color && Math.hypot(b.x-current.x, b.y-current.y) < BUBBLE_R*2.5) {
+                        matches.push(b); stack.push(b);
+                    }
+                });
+            }
+            return matches;
+        }
+        
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            angle = Math.atan2(e.clientY-rect.top - (canvas.height-25), e.clientX-rect.left - canvas.width/2);
+        });
+        canvas.addEventListener('click', () => { if(gameRunning) shoot(); });
+        
+        function initGame() {
+            score = 0; bullet = null; gameRunning = true;
+            document.getElementById('score').textContent = 0;
+            initBubbles();
+            update();
+        }
+        
+        initGame();
+    </script>
+</body>
+</html>
+
+

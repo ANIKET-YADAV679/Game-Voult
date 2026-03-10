@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Space Invaders - Game Voult">
+    <title>Space Invaders | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .game-container {
+            background: #1a1a24;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #2a2a3a;
+            text-align: center;
+        }
+        .game-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .game-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+        .info-item {
+            text-align: center;
+        }
+        .info-label {
+            font-size: 0.9rem;
+            color: #a0a0b0;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        #gameCanvas {
+            border: 3px solid #3a3a4a;
+            border-radius: 10px;
+            background: #0a0a0f;
+        }
+        .controls {
+            margin-top: 20px;
+            color: #a0a0b0;
+            font-size: 0.9rem;
+        }
+        .btn-restart {
+            margin-top: 15px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-restart:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo">
+                <img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon">
+                <span class="logo-text">Game Voult</span>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="../../index.html">Home</a></li>
+                <li><a href="../../categories.html">Categories</a></li>
+                <li><a href="../../about.html">About</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Game -->
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Space Invaders</h1>
+            
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">Score</div>
+                    <div class="info-value" id="score">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Level</div>
+                    <div class="info-value" id="level">1</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Lives</div>
+                    <div class="info-value" id="lives">3</div>
+                </div>
+            </div>
+
+            <canvas id="gameCanvas" width="600" height="500"></canvas>
+
+            <div class="controls">
+                <strong>Left/Right Arrow:</strong> Move &nbsp;|&nbsp; <strong>Space:</strong> Shoot
+            </div>
+
+            <button class="btn-restart" onclick="startGame()">Start Game</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Game Voult</h3>
+                <p>Your ultimate destination for classic browser games.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html">Home</a></li>
+                    <li><a href="../../categories.html">Categories</a></li>
+                    <li><a href="../../about.html">About</a></li>
+                    <li><a href="../../contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Categories</h4>
+                <ul>
+                    <li><a href="../../categories.html?category=single-player">Single Player</a></li>
+                    <li><a href="../../categories.html?category=two-player">Two Player</a></li>
+                    <li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <div class="social-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">Facebook</a>
+                    <a href="#">GitHub</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Game Voult. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const livesDisplay = document.getElementById('lives');
+
+        const PLAYER_WIDTH = 40;
+        const PLAYER_HEIGHT = 25;
+        const BULLET_WIDTH = 4;
+        const BULLET_HEIGHT = 10;
+        const ENEMY_WIDTH = 30;
+        const ENEMY_HEIGHT = 20;
+
+        let playerX = canvas.width / 2 - PLAYER_WIDTH / 2;
+        let bullets = [];
+        let enemies = [];
+        let enemyBullets = [];
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let gameRunning = false;
+        let gameLoop = null;
+        
+        const keys = {};
+        let lastShot = 0;
+
+        document.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            if (e.key === ' ') shoot();
+        });
+        document.addEventListener('keyup', e => keys[e.key] = false);
+
+        function initEnemies() {
+            enemies = [];
+            const rows = 4 + Math.min(level - 1, 3);
+            const cols = 8;
+            
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    enemies.push({
+                        x: 50 + col * 60,
+                        y: 50 + row * 40,
+                        alive: true,
+                        type: row
+                    });
+                }
+            }
+        }
+
+        function startGame() {
+            if (gameLoop) clearInterval(gameLoop);
+            
+            playerX = canvas.width / 2 - PLAYER_WIDTH / 2;
+            bullets = [];
+            enemyBullets = [];
+            score = 0;
+            lives = 3;
+            level = 1;
+            gameRunning = true;
+            
+            initEnemies();
+            updateDisplay();
+            
+            gameLoop = setInterval(update, 20);
+        }
+
+        function updateDisplay() {
+            scoreDisplay.textContent = score;
+            levelDisplay.textContent = level;
+            livesDisplay.textContent = lives;
+        }
+
+        function shoot() {
+            if (!gameRunning) return;
+            const now = Date.now();
+            if (now - lastShot > 300) {
+                bullets.push({
+                    x: playerX + PLAYER_WIDTH / 2 - BULLET_WIDTH / 2,
+                    y: canvas.height - PLAYER_HEIGHT - 20
+                });
+                lastShot = now;
+            }
+        }
+
+        function enemyShoot() {
+            const aliveEnemies = enemies.filter(e => e.alive);
+            if (aliveEnemies.length > 0 && Math.random() < 0.02 * level) {
+                const shooter = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+                enemyBullets.push({
+                    x: shooter.x + ENEMY_WIDTH / 2,
+                    y: shooter.y + ENEMY_HEIGHT
+                });
+            }
+        }
+
+        function update() {
+            if (!gameRunning) return;
+            
+            // Player movement
+            if (keys['ArrowLeft'] && playerX > 0) playerX -= 5;
+            if (keys['ArrowRight'] && playerX < canvas.width - PLAYER_WIDTH) playerX += 5;
+            
+            // Move bullets
+            bullets.forEach(bullet => bullet.y -= 8);
+            bullets = bullets.filter(bullet => bullet.y > 0);
+            
+            // Move enemy bullets
+            enemyBullets.forEach(bullet => bullet.y += 5);
+            enemyBullets = enemyBullets.filter(bullet => bullet.y < canvas.height);
+            
+            // Enemy movement
+            let moveDown = false;
+            const aliveEnemies = enemies.filter(e => e.alive);
+            if (aliveEnemies.length > 0) {
+                const rightmost = Math.max(...aliveEnemies.map(e => e.x));
+                const leftmost = Math.min(...aliveEnemies.map(e => e.x));
+                
+                if (rightmost > canvas.width - 40 || leftmost < 20) {
+                    moveDown = true;
+                }
+            }
+            
+            enemies.forEach(enemy => {
+                if (enemy.alive) {
+                    if (moveDown) {
+                        enemy.y += 20;
+                    } else {
+                        enemy.x += 0.5 * level * (level % 2 === 0 ? -1 : 1);
+                    }
+                }
+            });
+            
+            // Check if enemies reached bottom
+            enemies.forEach(enemy => {
+                if (enemy.alive && enemy.y > canvas.height - 50) {
+                    lives = 0;
+                    gameOver();
+                }
+            });
+            
+            // Bullet-enemy collision
+            bullets.forEach((bullet, bi) => {
+                enemies.forEach(enemy => {
+                    if (enemy.alive && 
+                        bullet.x < enemy.x + ENEMY_WIDTH &&
+                        bullet.x + BULLET_WIDTH > enemy.x &&
+                        bullet.y < enemy.y + ENEMY_HEIGHT &&
+                        bullet.y + BULLET_HEIGHT > enemy.y) {
+                        enemy.alive = false;
+                        bullets.splice(bi, 1);
+                        score += 10 * (4 - enemy.type);
+                        updateDisplay();
+                    }
+                });
+            });
+            
+            // Enemy bullet-player collision
+            enemyBullets.forEach((bullet, bi) => {
+                if (bullet.x > playerX && 
+                    bullet.x < playerX + PLAYER_WIDTH &&
+                    bullet.y > canvas.height - PLAYER_HEIGHT - 20 &&
+                    bullet.y < canvas.height - 20) {
+                    enemyBullets.splice(bi, 1);
+                    lives--;
+                    updateDisplay();
+                    if (lives <= 0) gameOver();
+                }
+            });
+            
+            // Check for level complete
+            if (enemies.filter(e => e.alive).length === 0) {
+                level++;
+                initEnemies();
+                bullets = [];
+                enemyBullets = [];
+                updateDisplay();
+            }
+            
+            enemyShoot();
+            draw();
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#0a0a0f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw stars
+            ctx.fillStyle = '#fff';
+            for (let i = 0; i < 50; i++) {
+                const x = (i * 137) % canvas.width;
+                const y = (i * 97) % canvas.height;
+                ctx.fillRect(x, y, 2, 2);
+            }
+            
+            // Draw player
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillRect(playerX, canvas.height - PLAYER_HEIGHT - 10, PLAYER_WIDTH, PLAYER_HEIGHT);
+            ctx.fillRect(playerX + 15, canvas.height - PLAYER_HEIGHT - 20, 10, 10);
+            
+            // Draw bullets
+            ctx.fillStyle = '#ffd700';
+            bullets.forEach(bullet => {
+                ctx.fillRect(bullet.x, bullet.y, BULLET_WIDTH, BULLET_HEIGHT);
+            });
+            
+            // Draw enemy bullets
+            ctx.fillStyle = '#ff4444';
+            enemyBullets.forEach(bullet => {
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw enemies
+            const colors = ['#ff6b35', '#ffd700', '#00ff88', '#ff44ff', '#44ffff', '#ffff44', '#ff8844'];
+            enemies.forEach(enemy => {
+                if (enemy.alive) {
+                    ctx.fillStyle = colors[enemy.type % colors.length];
+                    ctx.fillRect(enemy.x, enemy.y, ENEMY_WIDTH, ENEMY_HEIGHT);
+                    // Eyes
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(enemy.x + 5, enemy.y + 5, 5, 5);
+                    ctx.fillRect(enemy.x + 20, enemy.y + 5, 5, 5);
+                }
+            });
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#ff4444';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 20);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = '24px Arial';
+            ctx.fillText('Final Score: ' + score, canvas.width / 2, canvas.height / 2 + 20);
+            ctx.fillText('Level: ' + level, canvas.width / 2, canvas.height / 2 + 50);
+        }
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>
+

@@ -444,7 +444,7 @@ function initPage() {
     if (page === 'index.html' || page === 'categories.html') {
         // Render all games on homepage
         if (page === 'index.html' && gamesContainer) {
-            renderGames(gamesData.slice(0, 6)); // Show first 6 games
+            renderGames(gamesData.slice(0, 16)); // Show all 16 games
         }
         
         // Initialize category page

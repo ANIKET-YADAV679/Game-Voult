@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Duck Hunt - Game Voult">
+    <title>Duck Hunt | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .game-container { background: #1a1a24; border-radius: 20px; padding: 30px; border: 1px solid #2a2a3a; text-align: center; }
+        .game-title { font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .game-info { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+        .info-box { background: #252532; padding: 10px 20px; border-radius: 10px; }
+        .info-label { font-size: 0.8rem; color: #a0a0b0; }
+        .info-value { font-size: 1.5rem; font-weight: bold; color: #00d4ff; }
+        #gameCanvas { border: 3px solid #3a3a4a; border-radius: 10px; background: linear-gradient(to bottom, #87CEEB 60%, #228B22 60%); cursor: crosshair; }
+        .controls { margin-top: 15px; color: #a0a0b0; font-size: 0.9rem; }
+        .btn-restart { margin-top: 15px; padding: 12px 30px; font-size: 1rem; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); border: none; border-radius: 10px; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo"><img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon"><span class="logo-text">Game Voult</span></a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+            <ul class="nav-links"><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul>
+        </div>
+    </nav>
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Duck Hunt</h1>
+            <div class="game-info">
+                <div class="info-box"><div class="info-label">Score</div><div class="info-value" id="score">0</div></div>
+                <div class="info-box"><div class="info-label">Shots</div><div class="info-value" id="shots">3</div></div>
+                <div class="info-box"><div class="info-label">Round</div><div class="info-value" id="round">1</div></div>
+            </div>
+            <canvas id="gameCanvas" width="600" height="400"></canvas>
+            <div class="controls"><strong>Click:</strong> Shoot Ducks | Get 2+ ducks per round to advance</div>
+            <button class="btn-restart" onclick="startGame()">Start Game</button>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section"><h3>Game Voult</h3><p>Your ultimate destination for classic browser games.</p></div>
+            <div class="footer-section"><h4>Quick Links</h4><ul><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul></div>
+            <div class="footer-section"><h4>Categories</h4><ul><li><a href="../../categories.html?category=single-player">Single Player</a></li><li><a href="../../categories.html?category=two-player">Two Player</a></li><li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li></ul></div>
+            <div class="footer-section"><h4>Connect</h4><div class="social-links"><a href="#">Twitter</a><a href="#">Facebook</a><a href="#">GitHub</a></div></div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2024 Game Voult. All rights reserved.</p></div>
+    </footer>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let ducks = [], score = 0, shots = 3, round = 1, gameRunning = false, duckTimer = null;
+        
+        function startGame() {
+            score = 0; shots = 3; round = 1; gameRunning = true;
+            updateDisplay();
+            spawnDucks();
+            gameLoop();
+        }
+        
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('shots').textContent = shots;
+            document.getElementById('round').textContent = round;
+        }
+        
+        function spawnDucks() {
+            ducks = [];
+            const numDucks = Math.min(2 + Math.floor(round/2), 6);
+            for(let i=0; i<numDucks; i++) {
+                setTimeout(() => {
+                    if(!gameRunning) return;
+                    ducks.push({
+                        x: Math.random() * (canvas.width-100),
+                        y: canvas.height - 50,
+                        dx: (Math.random()-0.3) * 4,
+                        dy: -2 - Math.random() * 2,
+                        speed: 2 + round * 0.3,
+                        alive: true,
+                        escaped: false
+                    });
+                }, i * 800);
+            }
+        }
+        
+        function drawDuck(duck) {
+            if(!duck.alive) return;
+            ctx.save();
+            ctx.translate(duck.x, duck.y);
+            ctx.scale(duck.dx > 0 ? -1 : 1, 1);
+            // Body
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath(); ctx.ellipse(0, 0, 25, 15, 0, 0, Math.PI*2); ctx.fill();
+            // Head
+            ctx.fillStyle = '#2E8B57';
+            ctx.beginPath(); ctx.arc(20, -10, 12, 0, Math.PI*2); ctx.fill();
+            // Eye
+            ctx.fillStyle = '#000';
+            ctx.beginPath(); ctx.arc(24, -12, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(25, -12, 1, 0, Math.PI*2); ctx.fill();
+            // Beak
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath(); ctx.moveTo(30, -8); ctx.lineTo(40, -5); ctx.lineTo(30, -2); ctx.fill();
+            // Wing
+            ctx.fillStyle = '#654321';
+            ctx.beginPath(); ctx.ellipse(-5, -5, 15, 8, 0.3, 0, Math.PI*2); ctx.fill();
+            ctx.restore();
+        }
+        
+        function draw() {
+            // Sky
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#87CEEB'); grad.addColorStop(0.6, '#87CEEB'); grad.addColorStop(0.6, '#228B22');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Grass
+            ctx.fillStyle = '#228B22'; ctx.fillRect(0, canvas.height-50, canvas.width, 50);
+            // Trees
+            ctx.fillStyle = '#006400';
+            ctx.beginPath(); ctx.moveTo(50, canvas.height-50); ctx.lineTo(80, canvas.height-120); ctx.lineTo(110, canvas.height-50); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(450, canvas.height-50); ctx.lineTo(500, canvas.height-150); ctx.lineTo(550, canvas.height-50); ctx.fill();
+            // Sun
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath(); ctx.arc(520, 60, 30, 0, Math.PI*2); ctx.fill();
+            // Ducks
+            ducks.forEach(drawDuck);
+        }
+        
+        function update() {
+            let aliveCount = 0;
+            ducks.forEach(duck => {
+                if(duck.alive) {
+                    if(duck.dy < 0) duck.dy += 0.02;
+                    duck.x += duck.dx * duck.speed;
+                    duck.y += duck.dy * duck.speed;
+                    
+                    if(duck.x < -30 || duck.x > canvas.width+30 || duck.y < -30) {
+                        duck.escaped = true; duck.alive = false;
+                    }
+                    aliveCount++;
+                }
+            });
+            
+            if(aliveCount === 0) {
+                const escaped = ducks.filter(d => d.escaped).length;
+                if(escaped > ducks.length/2) {
+                    gameRunning = false;
+                    alert('Game Over! Final Score: ' + score);
+                } else {
+                    round++;
+                    shots = 3;
+                    updateDisplay();
+                    setTimeout(spawnDucks, 1000);
+                }
+            }
+        }
+        
+        function gameLoop() {
+            if(!gameRunning) return;
+            update(); draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        canvas.addEventListener('click', e => {
+            if(!gameRunning || shots <= 0) return;
+            shots--; updateDisplay();
+            
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            
+            ducks.forEach(duck => {
+                if(duck.alive && Math.hypot(mx - duck.x, my - duck.y) < 40) {
+                    duck.alive = false;
+                    score += 100;
+                    updateDisplay();
+                }
+            });
+        });
+        
+        draw();
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tetris - Game Voult">
+    <title>Tetris | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .game-container { background: #1a1a24; border-radius: 20px; padding: 30px; border: 1px solid #2a2a3a; text-align: center; }
+        .game-title { font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .game-info { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+        .info-box { background: #252532; padding: 10px 20px; border-radius: 10px; text-align: center; }
+        .info-label { font-size: 0.8rem; color: #a0a0b0; text-transform: uppercase; }
+        .info-value { font-size: 1.5rem; font-weight: bold; color: #00d4ff; }
+        #gameCanvas { border: 3px solid #3a3a4a; border-radius: 10px; background: #0a0a0f; }
+        .controls { margin-top: 15px; color: #a0a0b0; font-size: 0.9rem; }
+        .btn-restart { margin-top: 15px; padding: 12px 30px; font-size: 1rem; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); border: none; border-radius: 10px; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo"><img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon"><span class="logo-text">Game Voult</span></a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+            <ul class="nav-links"><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul>
+        </div>
+    </nav>
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Tetris</h1>
+            <div class="game-info">
+                <div class="info-box"><div class="info-label">Score</div><div class="info-value" id="score">0</div></div>
+                <div class="info-box"><div class="info-label">Level</div><div class="info-value" id="level">1</div></div>
+                <div class="info-box"><div class="info-label">Lines</div><div class="info-value" id="lines">0</div></div>
+            </div>
+            <canvas id="gameCanvas" width="300" height="500"></canvas>
+            <div class="controls"><strong>← →:</strong> Move &nbsp;|&nbsp; <strong>↑:</strong> Rotate &nbsp;|&nbsp; <strong>↓:</strong> Soft Drop</div>
+            <button class="btn-restart" onclick="startGame()">Start Game</button>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section"><h3>Game Voult</h3><p>Your ultimate destination for classic browser games.</p></div>
+            <div class="footer-section"><h4>Quick Links</h4><ul><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul></div>
+            <div class="footer-section"><h4>Categories</h4><ul><li><a href="../../categories.html?category=single-player">Single Player</a></li><li><a href="../../categories.html?category=two-player">Two Player</a></li><li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li></ul></div>
+            <div class="footer-section"><h4>Connect</h4><div class="social-links"><a href="#">Twitter</a><a href="#">Facebook</a><a href="#">GitHub</a></div></div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2024 Game Voult. All rights reserved.</p></div>
+    </footer>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const COLS = 10, ROWS = 20, BLOCK = 25;
+        const SHAPES = [[[1,1,1,1]],[[1,1],[1,1]],[[1,1,1],[0,1,0]],[[1,1,1],[1,0,0]],[[1,1,1],[0,0,1]],[[1,1,0],[0,1,1]],[[0,1,1],[1,1,0]]];
+        const COLORS = ['#00d4ff','#ff6b35','#ffd700','#00ff88','#ff44ff','#44ffff','#ff8844'];
+        let board = [], current = null, score = 0, lines = 0, level = 1, gameLoop = null, gameRunning = false;
+        
+        function initBoard() { board = Array(ROWS).fill().map(() => Array(COLS).fill(0)); }
+        function newPiece() { const idx = Math.floor(Math.random()*SHAPES.length); return { shape: SHAPES[idx], color: COLORS[idx], x: 3, y: 0 }; }
+        function draw() {
+            ctx.fillStyle = '#0a0a0f'; ctx.fillRect(0,0,canvas.width,canvas.height);
+            for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(board[r][c]) { ctx.fillStyle = board[r][c]; ctx.fillRect(c*BLOCK+1,r*BLOCK+1,BLOCK-2,BLOCK-2); }
+            if(current) { ctx.fillStyle = current.color; current.shape.forEach((row,y)=>row.forEach((val,x)=>{ if(val) ctx.fillRect((current.x+x)*BLOCK+1,(current.y+y)*BLOCK+1,BLOCK-2,BLOCK-2); })); }
+        }
+        function collide() { for(let y=0;y<current.shape.length;y++) for(let x=0;x<current.shape[y].length;x++) if(current.shape[y][x]) { let nx=current.x+x, ny=current.y+y; if(nx<0||nx>=COLS||ny>=ROWS||board[ny][nx]) return true; } return false; }
+        function merge() { current.shape.forEach((row,y)=>row.forEach((val,x)=>{ if(val) board[current.y+y][current.x+x] = current.color; })); }
+        function clearLines() { let cleared=0; for(let r=ROWS-1;r>=0;r--) { if(board[r].every(c=>c)) { board.splice(r,1); board.unshift(Array(COLS).fill(0)); cleared++; r++; } } if(cleared) { lines+=cleared; score+=cleared*100*cleared; level=Math.floor(lines/10)+1; updateDisplay(); } }
+        function updateDisplay() { document.getElementById('score').textContent=score; document.getElementById('level').textContent=level; document.getElementById('lines').textContent=lines; }
+        function rotate() { const old=current.shape; current.shape=current.shape[0].map((_,i)=>current.shape.map(r=>r[i]).reverse()); if(collide()) current.shape=old; }
+        function drop() { current.y++; if(collide()) { current.y--; merge(); clearLines(); current=newPiece(); if(collide()) { gameRunning=false; clearInterval(gameLoop); alert('Game Over! Score: '+score); } } draw(); }
+        function startGame() { if(gameLoop) clearInterval(gameLoop); initBoard(); current=newPiece(); score=0; lines=0; level=1; gameRunning=true; updateDisplay(); gameLoop=setInterval(drop,500-level*30); }
+        document.addEventListener('keydown',e=>{ if(!gameRunning)return; if(e.key==='ArrowLeft'){ current.x--; if(collide())current.x++; } if(e.key==='ArrowRight'){ current.x++; if(collide())current.x--; } if(e.key==='ArrowUp')rotate(); if(e.key==='ArrowDown')drop(); draw(); });
+        initBoard(); draw();
+    </script>
+</body>
+</html>
+

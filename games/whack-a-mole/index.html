@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Whack-a-Mole - Game Voult">
+    <title>Whack-a-Mole | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .game-container { background: #1a1a24; border-radius: 20px; padding: 30px; border: 1px solid #2a2a3a; text-align: center; }
+        .game-title { font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .game-info { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+        .info-box { background: #252532; padding: 10px 20px; border-radius: 10px; }
+        .info-label { font-size: 0.8rem; color: #a0a0b0; }
+        .info-value { font-size: 1.5rem; font-weight: bold; color: #00d4ff; }
+        .game-grid { display: grid; grid-template-columns: repeat(3, 100px); gap: 15px; margin: 20px auto; }
+        .hole { width: 100px; height: 100px; background: #3a2a1a; border-radius: 50%; position: relative; overflow: hidden; border: 4px solid #5a4a3a; cursor: pointer; }
+        .hole::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: #4a3a2a; }
+        .mole { width: 60px; height: 70px; background: #8B4513; border-radius: 30px 30px 0 0; position: absolute; bottom: -80px; left: 50%; transform: translateX(-50%); transition: bottom 0.1s; }
+        .mole::before { content: ''; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 40px; height: 30px; background: #deb887; border-radius: 20px; }
+        .mole::after { content: ''; position: absolute; top: 25px; width: 8px; height: 8px; background: #000; border-radius: 50%; box-shadow: 20px 0 0 #000; }
+        .hole.up .mole { bottom: 10px; }
+        .hole.whacked .mole { background: #ff6b35; transform: translateX(-50%) scale(0.9); }
+        .difficulty { margin-bottom: 15px; }
+        .difficulty select { padding: 8px 15px; background: #252532; border: 1px solid #3a3a4a; border-radius: 8px; color: white; }
+        .btn-restart { margin-top: 15px; padding: 12px 30px; font-size: 1rem; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); border: none; border-radius: 10px; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo"><img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon"><span class="logo-text">Game Voult</span></a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+            <ul class="nav-links"><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul>
+        </div>
+    </nav>
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Whack-a-Mole</h1>
+            <div class="difficulty">
+                <select id="difficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select>
+            </div>
+            <div class="game-info">
+                <div class="info-box"><div class="info-label">Score</div><div class="info-value" id="score">0</div></div>
+                <div class="info-box"><div class="info-label">Time</div><div class="info-value" id="time">30</div></div>
+            </div>
+            <div class="game-grid" id="grid"></div>
+            <button class="btn-restart" onclick="startGame()">Start Game</button>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section"><h3>Game Voult</h3><p>Your ultimate destination for classic browser games.</p></div>
+            <div class="footer-section"><h4>Quick Links</h4><ul><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul></div>
+            <div class="footer-section"><h4>Categories</h4><ul><li><a href="../../categories.html?category=single-player">Single Player</a></li><li><a href="../../categories.html?category=two-player">Two Player</a></li><li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li></ul></div>
+            <div class="footer-section"><h4>Connect</h4><div class="social-links"><a href="#">Twitter</a><a href="#">Facebook</a><a href="#">GitHub</a></div></div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2024 Game Voult. All rights reserved.</p></div>
+    </footer>
+    <script>
+        let score = 0, timeLeft = 30, gameRunning = false, moleTimer = null, timeTimer = null;
+        const grid = document.getElementById('grid');
+        
+        function initGrid() {
+            grid.innerHTML = '';
+            for(let i=0;i<9;i++) {
+                const hole = document.createElement('div');
+                hole.className = 'hole';
+                hole.innerHTML = '<div class="mole"></div>';
+                hole.onclick = () => whack(hole);
+                grid.appendChild(hole);
+            }
+        }
+        
+        function randomHole() {
+            const holes = [...document.querySelectorAll('.hole')];
+            return holes[Math.floor(Math.random()*holes.length)];
+        }
+        
+        function showMole() {
+            if(!gameRunning) return;
+            const hole = randomHole();
+            hole.classList.add('up');
+            const diff = document.getElementById('difficulty').value;
+            const time = diff==='easy'?1500:diff==='medium'?1000:700;
+            setTimeout(() => { hole.classList.remove('up'); if(gameRunning) showMole(); }, time);
+        }
+        
+        function whack(hole) {
+            if(!gameRunning || !hole.classList.contains('up')) return;
+            hole.classList.remove('up');
+            hole.classList.add('whacked');
+            score += 10;
+            document.getElementById('score').textContent = score;
+            setTimeout(() => hole.classList.remove('whacked'), 200);
+        }
+        
+        function startGame() {
+            score = 0; timeLeft = 30; gameRunning = true;
+            document.getElementById('score').textContent = 0;
+            document.getElementById('time').textContent = 30;
+            initGrid();
+            showMole();
+            timeTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time').textContent = timeLeft;
+                if(timeLeft<=0) { gameRunning=false; alert('Game Over! Score: '+score); clearInterval(timeTimer); }
+            }, 1000);
+        }
+        
+        initGrid();
+    </script>
+</body>
+</html>
+

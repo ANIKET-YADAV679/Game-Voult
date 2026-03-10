@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pong - Game Voult">
+    <title>Pong | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .game-container {
+            background: #1a1a24;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #2a2a3a;
+            text-align: center;
+        }
+        .game-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .score-display {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-bottom: 20px;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        .player-score { color: #ff6b35; }
+        .ai-score { color: #00d4ff; }
+        .score-label {
+            font-size: 1rem;
+            color: #a0a0b0;
+            display: block;
+            margin-bottom: 5px;
+        }
+        #gameCanvas {
+            border: 3px solid #3a3a4a;
+            border-radius: 10px;
+            background: #0a0a0f;
+        }
+        .controls {
+            margin-top: 20px;
+            color: #a0a0b0;
+            font-size: 0.9rem;
+        }
+        .game-mode {
+            margin-bottom: 15px;
+        }
+        .game-mode select {
+            padding: 8px 15px;
+            background: #252532;
+            border: 1px solid #3a3a4a;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .btn-restart {
+            margin-top: 15px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-restart:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo">
+                <img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon">
+                <span class="logo-text">Game Voult</span>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="../../index.html">Home</a></li>
+                <li><a href="../../categories.html">Categories</a></li>
+                <li><a href="../../about.html">About</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Game -->
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Pong</h1>
+            
+            <div class="score-display">
+                <div>
+                    <span class="score-label">Player</span>
+                    <span class="player-score" id="playerScore">0</span>
+                </div>
+                <div>
+                    <span class="score-label">CPU</span>
+                    <span class="ai-score" id="aiScore">0</span>
+                </div>
+            </div>
+
+            <div class="game-mode">
+                <select id="gameMode" onchange="changeMode()">
+                    <option value="ai">vs Computer</option>
+                    <option value="2p">2 Players</option>
+                </select>
+            </div>
+
+            <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+            <div class="controls">
+                <strong>Player 1:</strong> W/S keys &nbsp;|&nbsp; <strong>Player 2:</strong> Arrow Up/Down (in 2-player mode)
+            </div>
+
+            <button class="btn-restart" onclick="resetGame()">Reset Game</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Game Voult</h3>
+                <p>Your ultimate destination for classic browser games.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html">Home</a></li>
+                    <li><a href="../../categories.html">Categories</a></li>
+                    <li><a href="../../about.html">About</a></li>
+                    <li><a href="../../contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Categories</h4>
+                <ul>
+                    <li><a href="../../categories.html?category=single-player">Single Player</a></li>
+                    <li><a href="../../categories.html?category=two-player">Two Player</a></li>
+                    <li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <div class="social-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">Facebook</a>
+                    <a href="#">GitHub</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Game Voult. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const playerScoreEl = document.getElementById('playerScore');
+        const aiScoreEl = document.getElementById('aiScore');
+        const gameModeSelect = document.getElementById('gameMode');
+
+        const PADDLE_WIDTH = 15;
+        const PADDLE_HEIGHT = 100;
+        const BALL_SIZE = 12;
+        const PADDLE_SPEED = 8;
+        const WIN_SCORE = 5;
+
+        let playerY = canvas.height / 2 - PADDLE_HEIGHT / 2;
+        let aiY = canvas.height / 2 - PADDLE_HEIGHT / 2;
+        let ballX = canvas.width / 2;
+        let ballY = canvas.height / 2;
+        let ballVX = 6;
+        let ballVY = 4;
+        let playerScore = 0;
+        let aiScore = 0;
+        let gameRunning = true;
+        let mode = 'ai';
+
+        const keys = {};
+
+        document.addEventListener('keydown', e => keys[e.key] = true);
+        document.addEventListener('keyup', e => keys[e.key] = false);
+
+        function changeMode() {
+            mode = gameModeSelect.value;
+            resetGame();
+        }
+
+        function resetGame() {
+            playerY = canvas.height / 2 - PADDLE_HEIGHT / 2;
+            aiY = canvas.height / 2 - PADDLE_HEIGHT / 2;
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballVX = 6 * (Math.random() > 0.5 ? 1 : -1);
+            ballVY = 4 * (Math.random() > 0.5 ? 1 : -1);
+            playerScore = 0;
+            aiScore = 0;
+            gameRunning = true;
+            updateScore();
+        }
+
+        function updateScore() {
+            playerScoreEl.textContent = playerScore;
+            aiScoreEl.textContent = aiScore;
+        }
+
+        function update() {
+            if (!gameRunning) return;
+
+            // Player movement
+            if (keys['w'] || keys['W']) playerY -= PADDLE_SPEED;
+            if (keys['s'] || keys['S']) playerY += PADDLE_SPEED;
+            
+            // Player 2 movement (for 2-player mode)
+            if (mode === '2p') {
+                if (keys['ArrowUp']) aiY -= PADDLE_SPEED;
+                if (keys['ArrowDown']) aiY += PADDLE_SPEED;
+            } else {
+                // AI movement
+                const aiCenter = aiY + PADDLE_HEIGHT / 2;
+                if (aiCenter < ballY - 10) aiY += 5;
+                else if (aiCenter > ballY + 10) aiY -= 5;
+            }
+
+            // Boundary checks
+            playerY = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, playerY));
+            aiY = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, aiY));
+
+            // Ball movement
+            ballX += ballVX;
+            ballY += ballVY;
+
+            // Wall collisions
+            if (ballY <= 0 || ballY >= canvas.height - BALL_SIZE) {
+                ballVY = -ballVY;
+            }
+
+            // Paddle collisions
+            // Player paddle
+            if (ballX <= PADDLE_WIDTH + 10 && 
+                ballY + BALL_SIZE >= playerY && 
+                ballY <= playerY + PADDLE_HEIGHT) {
+                ballVX = Math.abs(ballVX);
+                ballVX += 0.5;
+                const hitPos = (ballY - playerY) / PADDLE_HEIGHT;
+                ballVY = (hitPos - 0.5) * 8;
+            }
+
+            // AI paddle
+            if (ballX >= canvas.width - PADDLE_WIDTH - 10 - BALL_SIZE && 
+                ballY + BALL_SIZE >= aiY && 
+                ballY <= aiY + PADDLE_HEIGHT) {
+                ballVX = -Math.abs(ballVX);
+                ballVX -= 0.5;
+                const hitPos = (ballY - aiY) / PADDLE_HEIGHT;
+                ballVY = (hitPos - 0.5) * 8;
+            }
+
+            // Scoring
+            if (ballX < 0) {
+                aiScore++;
+                updateScore();
+                resetBall();
+            } else if (ballX > canvas.width) {
+                playerScore++;
+                updateScore();
+                resetBall();
+            }
+
+            // Check winner
+            if (playerScore >= WIN_SCORE || aiScore >= WIN_SCORE) {
+                gameRunning = false;
+            }
+        }
+
+        function resetBall() {
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballVX = 6 * (Math.random() > 0.5 ? 1 : -1);
+            ballVY = 4 * (Math.random() > 0.5 ? 1 : -1);
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#0a0a0f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw center line
+            ctx.strokeStyle = '#2a2a3a';
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw paddles
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(10, playerY, PADDLE_WIDTH, PADDLE_HEIGHT);
+            
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillRect(canvas.width - PADDLE_WIDTH - 10, aiY, PADDLE_WIDTH, PADDLE_HEIGHT);
+
+            // Draw ball
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(ballX + BALL_SIZE/2, ballY + BALL_SIZE/2, BALL_SIZE/2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw winner message
+            if (!gameRunning && (playerScore >= WIN_SCORE || aiScore >= WIN_SCORE)) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.font = 'bold 48px Arial';
+                ctx.textAlign = 'center';
+                if (playerScore >= WIN_SCORE) {
+                    ctx.fillStyle = '#ff6b35';
+                    ctx.fillText('Player Wins!', canvas.width/2, canvas.height/2);
+                } else {
+                    ctx.fillStyle = '#00d4ff';
+                    ctx.fillText('CPU Wins!', canvas.width/2, canvas.height/2);
+                }
+                
+                ctx.font = '20px Arial';
+                ctx.fillStyle = '#a0a0b0';
+                ctx.fillText('Click Reset Game to play again', canvas.width/2, canvas.height/2 + 50);
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
+

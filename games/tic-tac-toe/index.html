@@ -14,36 +14,137 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 40px 20px;
+            padding: 20px;
+        }
+        .game-container {
+            background: #1a1a24;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #2a2a3a;
             text-align: center;
         }
-        .game-wrapper h1 {
+        .game-title {
             font-size: 2.5rem;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .game-wrapper .badge {
-            display: inline-block;
-            padding: 8px 20px;
-            background: rgba(255, 107, 53, 0.2);
+        .game-status {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: #a0a0b0;
+        }
+        .game-status .player-x { color: #ff6b35; font-weight: bold; }
+        .game-status .player-o { color: #00d4ff; font-weight: bold; }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            margin: 20px auto;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: #252532;
+            border: 2px solid #3a3a4a;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .cell:hover {
+            background: #2a2a3a;
+            transform: scale(1.02);
+        }
+        .cell.x {
             color: #ff6b35;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
+        }
+        .cell.o {
+            color: #00d4ff;
+        }
+        .cell.winning {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+        }
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
             margin-bottom: 20px;
         }
-        .game-wrapper p {
+        .score {
+            text-align: center;
+        }
+        .score-label {
+            font-size: 0.9rem;
             color: #a0a0b0;
-            max-width: 500px;
-            margin-bottom: 30px;
-            line-height: 1.7;
+            margin-bottom: 5px;
         }
-        .game-wrapper .btn {
-            margin-top: 15px;
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
         }
+        .score-value.x { color: #ff6b35; }
+        .score-value.o { color: #00d4ff; }
+        .btn-restart {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-restart:hover {
+            transform: scale(1.05);
+        }
+        .winner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .winner-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .winner-content {
+            background: #1a1a24;
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid #2a2a3a;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+        .winner-overlay.show .winner-content {
+            transform: scale(1);
+        }
+        .winner-text {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .winner-text.x { color: #ff6b35; }
+        .winner-text.o { color: #00d4ff; }
+        .winner-text.draw { color: #a0a0b0; }
     </style>
 </head>
 <body>
@@ -68,13 +169,47 @@
         </div>
     </nav>
 
-    <!-- Game Placeholder -->
+    <!-- Game -->
     <div class="game-wrapper">
-        <h1>Tic Tac Toe</h1>
-        <span class="badge">Two Player</span>
-        <p>The classic game of X and O is coming soon to Game Voult! Get three in a row to win. Challenge a friend on the same device and see who can claim victory first.</p>
-        <p>Check back soon for the full game experience!</p>
-        <a href="../../categories.html?category=two-player" class="btn btn-primary">Browse More Games</a>
+        <div class="game-container">
+            <h1 class="game-title">Tic Tac Toe</h1>
+            <div class="game-status">
+                <span id="currentPlayer" class="player-x">Player X</span>'s Turn
+            </div>
+            
+            <div class="score-board">
+                <div class="score">
+                    <div class="score-label">Player X</div>
+                    <div class="score-value x" id="scoreX">0</div>
+                </div>
+                <div class="score">
+                    <div class="score-label">Player O</div>
+                    <div class="score-value o" id="scoreO">0</div>
+                </div>
+            </div>
+
+            <div class="board" id="board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+            </div>
+
+            <button class="btn-restart" onclick="restartGame()">New Game</button>
+        </div>
+    </div>
+
+    <!-- Winner Overlay -->
+    <div class="winner-overlay" id="winnerOverlay">
+        <div class="winner-content">
+            <div class="winner-text" id="winnerText">Player X Wins!</div>
+            <button class="btn-restart" onclick="restartGame()">Play Again</button>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -104,9 +239,9 @@
             <div class="footer-section">
                 <h4>Connect</h4>
                 <div class="social-links">
-                    <a href="#" aria-label="Twitter">Twitter</a>
-                    <a href="#" aria-label="Facebook">Facebook</a>
-                    <a href="#" aria-label="GitHub">GitHub</a>
+                    <a href="#">Twitter</a>
+                    <a href="#">Facebook</a>
+                    <a href="#">GitHub</a>
                 </div>
             </div>
         </div>
@@ -115,7 +250,101 @@
         </div>
     </footer>
 
-    <script src="../../app.js"></script>
+    <script>
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let scoreX = 0;
+        let scoreO = 0;
+
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6] // Diagonals
+        ];
+
+        const cells = document.querySelectorAll('.cell');
+        const currentPlayerDisplay = document.getElementById('currentPlayer');
+        const winnerOverlay = document.getElementById('winnerOverlay');
+        const winnerText = document.getElementById('winnerText');
+        const scoreXDisplay = document.getElementById('scoreX');
+        const scoreODisplay = document.getElementById('scoreO');
+
+        cells.forEach(cell => {
+            cell.addEventListener('click', handleCellClick);
+        });
+
+        function handleCellClick(e) {
+            const cell = e.target;
+            const index = cell.getAttribute('data-index');
+
+            if (board[index] !== '' || !gameActive) return;
+
+            board[index] = currentPlayer;
+            cell.textContent = currentPlayer;
+            cell.classList.add(currentPlayer.toLowerCase());
+
+            if (checkWin()) {
+                endGame(false);
+            } else if (board.every(cell => cell !== '')) {
+                endGame(true);
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                updateCurrentPlayer();
+            }
+        }
+
+        function checkWin() {
+            return winningConditions.some(condition => {
+                const [a, b, c] = condition;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    condition.forEach(index => {
+                        cells[index].classList.add('winning');
+                    });
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        function endGame(draw) {
+            gameActive = false;
+            if (!draw) {
+                if (currentPlayer === 'X') {
+                    scoreX++;
+                    scoreXDisplay.textContent = scoreX;
+                } else {
+                    scoreO++;
+                    scoreODisplay.textContent = scoreO;
+                }
+                winnerText.textContent = `Player ${currentPlayer} Wins!`;
+                winnerText.className = 'winner-text ' + currentPlayer.toLowerCase();
+            } else {
+                winnerText.textContent = "It's a Draw!";
+                winnerText.className = 'winner-text draw';
+            }
+            winnerOverlay.classList.add('show');
+        }
+
+        function updateCurrentPlayer() {
+            currentPlayerDisplay.textContent = `Player ${currentPlayer}`;
+            currentPlayerDisplay.className = currentPlayer === 'X' ? 'player-x' : 'player-o';
+        }
+
+        function restartGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('x', 'o', 'winning');
+            });
+            
+            winnerOverlay.classList.remove('show');
+            updateCurrentPlayer();
+        }
+    </script>
 </body>
 </html>
 
