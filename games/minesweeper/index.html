@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Minesweeper - Game Voult">
+    <title>Minesweeper | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .game-container { background: #1a1a24; border-radius: 20px; padding: 30px; border: 1px solid #2a2a3a; text-align: center; }
+        .game-title { font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .game-info { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+        .info-box { background: #252532; padding: 10px 20px; border-radius: 10px; }
+        .info-label { font-size: 0.8rem; color: #a0a0b0; }
+        .info-value { font-size: 1.5rem; font-weight: bold; color: #00d4ff; }
+        .game-board { display: grid; grid-template-columns: repeat(10, 35px); gap: 2px; margin: 20px auto; background: #3a3a4a; padding: 5px; border-radius: 10px; }
+        .cell { width: 35px; height: 35px; background: #252532; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; user-select: none; }
+        .cell:hover:not(.revealed) { background: #3a3a4a; }
+        .cell.revealed { background: #1a1a24; cursor: default; }
+        .cell.mine { background: #ff4444; }
+        .cell.flagged { color: #ff6b35; }
+        .cell[data-n="1"] { color: #00d4ff; } .cell[data-n="2"] { color: #00ff88; } .cell[data-n="3"] { color: #ff4444; }
+        .cell[data-n="4"] { color: #7c3aed; } .cell[data-n="5"] { color: #ff6b35; } .cell[data-n="6"] { color: #00d4ff; }
+        .cell[data-n="7"] { color: #000; } .cell[data-n="8"] { color: #888; }
+        .difficulty { margin-bottom: 15px; }
+        .difficulty select { padding: 8px 15px; background: #252532; border: 1px solid #3a3a4a; border-radius: 8px; color: white; }
+        .btn-restart { margin-top: 15px; padding: 12px 30px; font-size: 1rem; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); border: none; border-radius: 10px; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo"><img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon"><span class="logo-text">Game Voult</span></a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+            <ul class="nav-links"><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul>
+        </div>
+    </nav>
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Minesweeper</h1>
+            <div class="difficulty"><select id="difficulty" onchange="initGame()"><option value="easy">Easy (10 mines)</option><option value="medium" selected>Medium (15 mines)</option><option value="hard">Hard (20 mines)</option></select></div>
+            <div class="game-info">
+                <div class="info-box"><div class="info-label">Mines</div><div class="info-value" id="mines">15</div></div>
+                <div class="info-box"><div class="info-label">Status</div><div class="info-value" id="status">Playing</div></div>
+            </div>
+            <div class="game-board" id="board"></div>
+            <button class="btn-restart" onclick="initGame()">New Game</button>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section"><h3>Game Voult</h3><p>Your ultimate destination for classic browser games.</p></div>
+            <div class="footer-section"><h4>Quick Links</h4><ul><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul></div>
+            <div class="footer-section"><h4>Categories</h4><ul><li><a href="../../categories.html?category=single-player">Single Player</a></li><li><a href="../../categories.html?category=two-player">Two Player</a></li><li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li></ul></div>
+            <div class="footer-section"><h4>Connect</h4><div class="social-links"><a href="#">Twitter</a><a href="#">Facebook</a><a href="#">GitHub</a></div></div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2024 Game Voult. All rights reserved.</p></div>
+    </footer>
+    <script>
+        const ROWS = 10, COLS = 10;
+        let board = [], mines = [], revealed = [], flagged = [], mineCount = 15, gameOver = false;
+        
+        function initGame() {
+            const diff = document.getElementById('difficulty').value;
+            mineCount = diff==='easy'?10:diff==='medium'?15:20;
+            board = Array(ROWS).fill().map(()=>Array(COLS).fill(0));
+            revealed = Array(ROWS).fill().map(()=>Array(COLS).fill(false));
+            flagged = Array(ROWS).fill().map(()=>Array(COLS).fill(false));
+            mines = []; gameOver = false;
+            document.getElementById('mines').textContent = mineCount;
+            document.getElementById('status').textContent = 'Playing';
+            document.getElementById('status').style.color = '#00d4ff';
+            
+            // Place mines
+            while(mines.length < mineCount) {
+                let r = Math.floor(Math.random()*ROWS), c = Math.floor(Math.random()*COLS);
+                if(!mines.some(m=>m.r===r&&m.c===c)) mines.push({r,c});
+            }
+            
+            // Calculate numbers
+            for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+                if(mines.some(m=>m.r===r&&m.c===c)) { board[r][c] = -1; continue; }
+                let count = 0;
+                for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
+                    if(mines.some(m=>m.r===r+dr&&m.c===c+dc)) count++;
+                }
+                board[r][c] = count;
+            }
+            drawBoard();
+        }
+        
+        function drawBoard() {
+            const container = document.getElementById('board');
+            container.innerHTML = '';
+            for(let r=0;r<ROWS;r++) {
+                for(let c=0;c<COLS;c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell' + (revealed[r][c]?' revealed':'') + (flagged[r][c]?' flagged':'');
+                    if(revealed[r][c]) {
+                        if(board[r][c]===-1) { cell.classList.add('mine'); cell.textContent = '💣'; }
+                        else if(board[r][c]>0) { cell.textContent = board[r][c]; cell.setAttribute('data-n',board[r][c]); }
+                    } else if(flagged[r][c]) cell.textContent = '🚩';
+                    cell.onclick = () => clickCell(r,c);
+                    cell.oncontextmenu = (e) => { e.preventDefault(); flagCell(r,c); };
+                    container.appendChild(cell);
+                }
+            }
+        }
+        
+        function clickCell(r,c) {
+            if(gameOver||revealed[r][c]||flagged[r][c]) return;
+            if(board[r][c]===-1) { gameOver=true; revealAll(); document.getElementById('status').textContent = 'Lost!'; document.getElementById('status').style.color = '#ff4444'; return; }
+            reveal(r,c);
+            drawBoard();
+            checkWin();
+        }
+        
+        function reveal(r,c) {
+            if(r<0||r>=ROWS||c<0||c>=COLS||revealed[r][c]||flagged[r][c]) return;
+            revealed[r][c] = true;
+            if(board[r][c]===0) for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) reveal(r+dr,c+dc);
+        }
+        
+        function flagCell(r,c) {
+            if(gameOver||revealed[r][c]) return;
+            flagged[r][c] = !flagged[r][c];
+            document.getElementById('mines').textContent = mineCount - flagged.flat().filter(f=>f).length;
+            drawBoard();
+        }
+        
+        function revealAll() {
+            for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(board[r][c]===-1) revealed[r][c] = true;
+            drawBoard();
+        }
+        
+        function checkWin() {
+            const unrevealedSafe = ROWS*COLS - revealed.flat().filter(r=>r).length;
+            if(unrevealedSafe === mineCount) { gameOver = true; document.getElementById('status').textContent = 'Won!'; document.getElementById('status').style.color = '#00ff88'; }
+        }
+        
+        initGame();
+    </script>
+</body>
+</html>
+

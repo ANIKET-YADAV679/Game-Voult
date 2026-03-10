@@ -1,7 +1,7 @@
 {
     "siteName": "Game Voult",
-    "version": "1.0.0",
-    "lastUpdated": "2024-01-01",
+    "version": "2.0.0",
+    "lastUpdated": "2024-01-15",
     "games": [
         {
             "id": "tic-tac-toe",
@@ -9,7 +9,7 @@
             "description": "Classic two-player game of X and O. Get three in a row to win!",
             "category": "two-player",
             "players": 2,
-            "status": "coming-soon",
+            "status": "playable",
             "path": "games/tic-tac-toe/index.html",
             "thumbnail": "assets/images/tic-tac-toe.png"
         },
@@ -19,7 +19,7 @@
             "description": "Guide your snake to eat food and grow longer. Don't hit the walls or yourself!",
             "category": "single-player",
             "players": 1,
-            "status": "coming-soon",
+            "status": "playable",
             "path": "games/snake/index.html",
             "thumbnail": "assets/images/snake.png"
         },
@@ -29,19 +29,9 @@
             "description": "Drop colored discs and connect four in a row to win!",
             "category": "two-player",
             "players": 2,
-            "status": "coming-soon",
+            "status": "playable",
             "path": "games/connect-four/index.html",
             "thumbnail": "assets/images/connect-four.png"
-        },
-        {
-            "id": "chess-bot",
-            "title": "Chess vs Bot",
-            "description": "Challenge our AI bot in a classic game of chess",
-            "category": "bot-opponent",
-            "players": 1,
-            "status": "coming-soon",
-            "path": "games/chess-bot/index.html",
-            "thumbnail": "assets/images/chess.png"
         },
         {
             "id": "pong",
@@ -49,7 +39,7 @@
             "description": "The classic arcade game. Play against a friend or the computer!",
             "category": "two-player",
             "players": 2,
-            "status": "coming-soon",
+            "status": "playable",
             "path": "games/pong/index.html",
             "thumbnail": "assets/images/pong.png"
         },
@@ -59,9 +49,119 @@
             "description": "Find all matching pairs of cards in this memory game",
             "category": "single-player",
             "players": 1,
-            "status": "coming-soon",
+            "status": "playable",
             "path": "games/memory-game/index.html",
             "thumbnail": "assets/images/memory.png"
+        },
+        {
+            "id": "breakout",
+            "title": "Breakout",
+            "description": "Break all the bricks with your paddle! Classic arcade action",
+            "category": "single-player",
+            "players": 1,
+            "status": "playable",
+            "path": "games/breakout/index.html",
+            "thumbnail": "assets/images/breakout.png"
+        },
+        {
+            "id": "flappy-bird",
+            "title": "Flappy Bird",
+            "description": "Tap to fly and navigate through obstacles. How far can you go?",
+            "category": "single-player",
+            "players": 1,
+            "status": "playable",
+            "path": "games/flappy-bird/index.html",
+            "thumbnail": "assets/images/flappy-bird.png"
+        },
+        {
+            "id": "space-invaders",
+            "title": "Space Invaders",
+            "description": "Defend Earth from invading alien ships! Classic shooter action",
+            "category": "single-player",
+            "players": 1,
+            "status": "playable",
+            "path": "games/space-invaders/index.html",
+            "thumbnail": "assets/images/space-invaders.png"
+        },
+        {
+            "id": "rock-paper-scissors",
+            "title": "Rock Paper Scissors",
+            "description": "Classic hand game against the computer. Can you beat the AI?",
+            "category": "bot-opponent",
+            "players": 1,
+            "status": "playable",
+            "path": "games/rock-paper-scissors/index.html",
+            "thumbnail": "assets/images/rock-paper-scissors.png"
+        },
+        {
+            "id": "bubble-shooter",
+            "title": "Bubble Shooter",
+            "description": "Match and pop bubbles to clear the board. Shoot your way to victory!",
+            "category": "single-player",
+            "players": 1,
+            "status": "playable",
+            "path": "games/bubble-shooter/index.html",
+            "thumbnail": "assets/images/bubble-shooter.png"
+        },
+        {
+            "id": "2048",
+            "title": "2048",
+            "description": "Combine numbers to reach 2048! Addictive number puzzle game",
+            "category": "single-player",
+            "players": 1,
+            "status": "playable",
+            "path": "games/2048/index.html",
+            "thumbnail": "assets/images/2048.png"
+        },
+        {
+            "id": "tetris",
+            "title": "Tetris",
+            "description": "Stack falling blocks to clear lines. The classic puzzle game!",
+            "category": "single-player",
+            "players": 1,
+            "status": "playable",
+            "path": "games/tetris/index.html",
+            "thumbnail": "assets/images/tetris.png"
+        },
+        {
+            "id": "whack-a-mole",
+            "title": "Whack-a-Mole",
+            "description": "Whack the moles as they pop up! Test your reflexes and speed",
+            "category": "single-player",
+            "players": 1,
+            "status": "playable",
+            "path": "games/whack-a-mole/index.html",
+            "thumbnail": "assets/images/whack-a-mole.png"
+        },
+        {
+            "id": "duck-hunt",
+            "title": "Duck Hunt",
+            "description": "Shoot the ducks as they fly across the screen! Classic hunting game",
+            "category": "single-player",
+            "players": 1,
+            "status": "playable",
+            "path": "games/duck-hunt/index.html",
+            "thumbnail": "assets/images/duck-hunt.png"
+        },
+        {
+            "id": "minesweeper",
+            "title": "Minesweeper",
+            "description": "Clear the minefield without hitting a bomb! Logic puzzle classic",
+            "category": "single-player",
+            "players": 1,
+            "status": "playable",
+            "path": "games/minesweeper/index.html",
+            "thumbnail": "assets/images/minesweeper.png"
+        },
+        {
+            "id": "chess-bot",
+            "title": "Chess vs Bot",
+            "description": "Challenge our AI bot in a classic game of chess",
+            "category": "bot-opponent",
+            "players": 1,
+            "status": "playable",
+            "path": "games/chess-bot/index.html",
+            "thumbnail": "assets/images/chess.png"
         }
     ],
     "categories": [

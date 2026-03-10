@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Memory Match - Game Voult">
+    <title>Memory Match | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .game-container {
+            background: #1a1a24;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #2a2a3a;
+            text-align: center;
+        }
+        .game-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .game-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #a0a0b0;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            gap: 10px;
+            margin: 20px auto;
+        }
+        .card {
+            width: 80px;
+            height: 80px;
+            background: #252532;
+            border: 2px solid #3a3a4a;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        .card:hover {
+            transform: scale(1.05);
+            border-color: #00d4ff;
+        }
+        .card.flipped {
+            background: #1a1a24;
+            border-color: #00d4ff;
+        }
+        .card.matched {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: #00d4ff;
+            opacity: 0.8;
+        }
+        .card .icon {
+            display: none;
+        }
+        .card.flipped .icon,
+        .card.matched .icon {
+            display: block;
+        }
+        .difficulty-select {
+            margin-bottom: 20px;
+        }
+        .difficulty-select select {
+            padding: 8px 15px;
+            background: #252532;
+            border: 1px solid #3a3a4a;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .btn-restart {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-restart:hover {
+            transform: scale(1.05);
+        }
+        .win-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .win-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .win-content {
+            background: #1a1a24;
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid #2a2a3a;
+        }
+        .win-title {
+            font-size: 2rem;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        .win-stats {
+            color: #a0a0b0;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo">
+                <img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon">
+                <span class="logo-text">Game Voult</span>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="../../index.html">Home</a></li>
+                <li><a href="../../categories.html">Categories</a></li>
+                <li><a href="../../about.html">About</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Game -->
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Memory Match</h1>
+            
+            <div class="difficulty-select">
+                <select id="difficulty" onchange="changeDifficulty()">
+                    <option value="easy">Easy (8 pairs)</option>
+                    <option value="medium" selected>Medium (12 pairs)</option>
+                    <option value="hard">Hard (16 pairs)</option>
+                </select>
+            </div>
+
+            <div class="game-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Moves</div>
+                    <div class="stat-value" id="moves">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Time</div>
+                    <div class="stat-value" id="timer">0:00</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Pairs</div>
+                    <div class="stat-value" id="pairs">0/12</div>
+                </div>
+            </div>
+
+            <div class="game-board" id="gameBoard"></div>
+
+            <button class="btn-restart" onclick="initGame()">New Game</button>
+        </div>
+    </div>
+
+    <!-- Win Overlay -->
+    <div class="win-overlay" id="winOverlay">
+        <div class="win-content">
+            <div class="win-title">🎉 You Won!</div>
+            <div class="win-stats">
+                Moves: <span id="finalMoves">0</span> | Time: <span id="finalTime">0:00</span>
+            </div>
+            <button class="btn-restart" onclick="initGame()">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Game Voult</h3>
+                <p>Your ultimate destination for classic browser games.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html">Home</a></li>
+                    <li><a href="../../categories.html">Categories</a></li>
+                    <li><a href="../../about.html">About</a></li>
+                    <li><a href="../../contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Categories</h4>
+                <ul>
+                    <li><a href="../../categories.html?category=single-player">Single Player</a></li>
+                    <li><a href="../../categories.html?category=two-player">Two Player</a></li>
+                    <li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <div class="social-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">Facebook</a>
+                    <a href="#">GitHub</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Game Voult. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const icons = ['🎮', '🎯', '🎨', '🎭', '🎪', '🎬', '🎸', '🎺', '🎻', '🎲', '🎳', '🏀', '🏈', '🎾', '🏐', '🥊'];
+        
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let moves = 0;
+        let timer = 0;
+        let timerInterval = null;
+        let gameStarted = false;
+        let canFlip = true;
+        let pairsCount = 12;
+
+        const gameBoard = document.getElementById('gameBoard');
+        const movesDisplay = document.getElementById('moves');
+        const timerDisplay = document.getElementById('timer');
+        const pairsDisplay = document.getElementById('pairs');
+        const winOverlay = document.getElementById('winOverlay');
+        const difficultySelect = document.getElementById('difficulty');
+
+        function changeDifficulty() {
+            const diff = difficultySelect.value;
+            if (diff === 'easy') {
+                pairsCount = 8;
+                gameBoard.style.gridTemplateColumns = 'repeat(4, 80px)';
+            } else if (diff === 'medium') {
+                pairsCount = 12;
+                gameBoard.style.gridTemplateColumns = 'repeat(4, 80px)';
+            } else {
+                pairsCount = 16;
+                gameBoard.style.gridTemplateColumns = 'repeat(4, 80px)';
+            }
+            initGame();
+        }
+
+        function initGame() {
+            cards = [];
+            flippedCards = [];
+            matchedPairs = 0;
+            moves = 0;
+            timer = 0;
+            gameStarted = false;
+            canFlip = true;
+            
+            clearInterval(timerInterval);
+            winOverlay.classList.remove('show');
+            
+            const selectedIcons = icons.slice(0, pairsCount);
+            const cardIcons = [...selectedIcons, ...selectedIcons];
+            
+            // Shuffle
+            for (let i = cardIcons.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cardIcons[i], cardIcons[j]] = [cardIcons[j], cardIcons[i]];
+            }
+            
+            gameBoard.innerHTML = '';
+            
+            cardIcons.forEach((icon, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+                card.dataset.icon = icon;
+                card.innerHTML = `<span class="icon">${icon}</span>`;
+                card.addEventListener('click', () => flipCard(card));
+                gameBoard.appendChild(card);
+            });
+            
+            updateStats();
+        }
+
+        function flipCard(card) {
+            if (!canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+            
+            if (!gameStarted) {
+                gameStarted = true;
+                startTimer();
+            }
+            
+            card.classList.add('flipped');
+            flippedCards.push(card);
+            
+            if (flippedCards.length === 2) {
+                moves++;
+                checkMatch();
+            }
+            
+            updateStats();
+        }
+
+        function checkMatch() {
+            canFlip = false;
+            const [card1, card2] = flippedCards;
+            
+            if (card1.dataset.icon === card2.dataset.icon) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                flippedCards = [];
+                canFlip = true;
+                
+                if (matchedPairs === pairsCount) {
+                    gameWon();
+                }
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                    canFlip = true;
+                }, 1000);
+            }
+            
+            updateStats();
+        }
+
+        function updateStats() {
+            movesDisplay.textContent = moves;
+            pairsDisplay.textContent = `${matchedPairs}/${pairsCount}`;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timer++;
+                const minutes = Math.floor(timer / 60);
+                const seconds = timer % 60;
+                timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function gameWon() {
+            clearInterval(timerInterval);
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            document.getElementById('finalMoves').textContent = moves;
+            document.getElementById('finalTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            winOverlay.classList.add('show');
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="2048 - Game Voult">
+    <title>2048 | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .game-container {
+            background: #1a1a24;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #2a2a3a;
+            text-align: center;
+        }
+        .game-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .game-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background: #252532;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .info-label {
+            font-size: 0.8rem;
+            color: #a0a0b0;
+            text-transform: uppercase;
+        }
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            grid-template-rows: repeat(4, 80px);
+            gap: 10px;
+            background: #252532;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 20px auto;
+        }
+        .tile {
+            width: 80px;
+            height: 80px;
+            background: #1a1a24;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .tile-2 { background: #eee4da; color: #776e65; }
+        .tile-4 { background: #ede0c8; color: #776e65; }
+        .tile-8 { background: #f2b179; }
+        .tile-16 { background: #f59563; }
+        .tile-32 { background: #f67c5f; }
+        .tile-64 { background: #f65e3b; }
+        .tile-128 { background: #edcf72; font-size: 1.5rem; }
+        .tile-256 { background: #edcc61; font-size: 1.5rem; }
+        .tile-512 { background: #edc850; font-size: 1.5rem; }
+        .tile-1024 { background: #edc53f; font-size: 1.2rem; }
+        .tile-2048 { background: #edc22e; font-size: 1.2rem; }
+        .controls {
+            margin-top: 20px;
+            color: #a0a0b0;
+            font-size: 0.9rem;
+        }
+        .btn-restart {
+            margin-top: 15px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+        }
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        .game-over.show { display: flex; }
+        .game-over-content {
+            background: #1a1a24;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo">
+                <img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon">
+                <span class="logo-text">Game Voult</span>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+            <ul class="nav-links">
+                <li><a href="../../index.html">Home</a></li>
+                <li><a href="../../categories.html">Categories</a></li>
+                <li><a href="../../about.html">About</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">2048</h1>
+            <div class="game-info">
+                <div class="info-box"><div class="info-label">Score</div><div class="info-value" id="score">0</div></div>
+                <div class="info-box"><div class="info-label">Best</div><div class="info-value" id="best">0</div></div>
+            </div>
+            <div class="game-board" id="board"></div>
+            <div class="controls">Use <strong>Arrow Keys</strong> to move tiles</div>
+            <button class="btn-restart" onclick="initGame()">New Game</button>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <h2 style="color: #ff6b35; font-size: 2rem;">Game Over!</h2>
+            <p style="color: #a0a0b0;">Score: <span id="finalScore">0</span></p>
+            <button class="btn-restart" onclick="initGame()">Try Again</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section"><h3>Game Voult</h3><p>Your ultimate destination for classic browser games.</p></div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul><li><a href="../../index.html">Home</a></li><li><a href="../../categories.html">Categories</a></li><li><a href="../../about.html">About</a></li><li><a href="../../contact.html">Contact</a></li></ul>
+            </div>
+            <div class="footer-section">
+                <h4>Categories</h4>
+                <ul><li><a href="../../categories.html?category=single-player">Single Player</a></li><li><a href="../../categories.html?category=two-player">Two Player</a></li><li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li></ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <div class="social-links"><a href="#">Twitter</a><a href="#">Facebook</a><a href="#">GitHub</a></div>
+            </div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2024 Game Voult. All rights reserved.</p></div>
+    </footer>
+
+    <script>
+        let board = [];
+        let score = 0;
+        let best = localStorage.getItem('2048best') || 0;
+        
+        document.getElementById('best').textContent = best;
+
+        function initGame() {
+            board = Array(4).fill().map(() => Array(4).fill(0));
+            score = 0;
+            document.getElementById('score').textContent = 0;
+            document.getElementById('gameOver').classList.remove('show');
+            addRandomTile();
+            addRandomTile();
+            drawBoard();
+        }
+
+        function addRandomTile() {
+            let empty = [];
+            for(let r=0; r<4; r++) for(let c=0; c<4; c++) if(board[r][c]===0) empty.push([r,c]);
+            if(empty.length) {
+                const [r,c] = empty[Math.floor(Math.random()*empty.length)];
+                board[r][c] = Math.random()<0.9 ? 2 : 4;
+            }
+        }
+
+        function drawBoard() {
+            const container = document.getElementById('board');
+            container.innerHTML = '';
+            for(let r=0; r<4; r++) {
+                for(let c=0; c<4; c++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile' + (board[r][c] ? ' tile-'+board[r][c] : '');
+                    tile.textContent = board[r][c] || '';
+                    container.appendChild(tile);
+                }
+            }
+        }
+
+        function move(direction) {
+            let moved = false;
+            const rotate = () => {
+                board = board[0].map((_,i) => board.map(r => r[i]).reverse());
+            };
+            const rotateBack = () => {
+                board = board[0].map((_,i) => board.map(r => r[3-i]));
+            };
+            
+            if(direction === 'left') {}
+            else if(direction === 'right') { board.forEach(row => row.reverse()); }
+            else if(direction === 'up') { rotate(); rotate(); rotate(); }
+            else if(direction === 'down') { rotate(); }
+            
+            for(let r=0; r<4; r++) {
+                let row = board[r].filter(x => x);
+                for(let i=0; i<row.length-1; i++) {
+                    if(row[i] === row[i+1]) { row[i] *= 2; score += row[i]; row.splice(i+1,1); }
+                }
+                while(row.length < 4) row.push(0);
+                if(board[r].join(',') !== row.join(',')) moved = true;
+                board[r] = row;
+            }
+            
+            if(direction === 'right') board.forEach(row => row.reverse());
+            else if(direction === 'up') { rotateBack(); rotateBack(); rotateBack(); }
+            else if(direction === 'down') { rotateBack(); }
+            
+            if(moved) {
+                addRandomTile();
+                drawBoard();
+                document.getElementById('score').textContent = score;
+                if(score > best) { best = score; localStorage.setItem('2048best', best); document.getElementById('best').textContent = best; }
+                if(board.flat().includes(2048)) alert('You reached 2048! Keep playing!');
+                if(board.flat().every(x => x !== 0)) {
+                    document.getElementById('finalScore').textContent = score;
+                    document.getElementById('gameOver').classList.add('show');
+                }
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+                e.preventDefault();
+                move(e.key.replace('Arrow','').toLowerCase());
+            }
+        });
+
+        initGame();
+    </script>
+</body>
+</html>
+

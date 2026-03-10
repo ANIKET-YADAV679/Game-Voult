@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width-width, initial-scale=1.0">
+    <meta name="description" content="Rock Paper Scissors - Game Voult">
+    <title>Rock Paper Scissors | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .game-container {
+            background: #1a1a24;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #2a2a3a;
+            text-align: center;
+            max-width: 500px;
+        }
+        .game-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        .score {
+            text-align: center;
+        }
+        .score-label {
+            font-size: 0.9rem;
+            color: #a0a0b0;
+            margin-bottom: 5px;
+        }
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .score-value.player { color: #00d4ff; }
+        .score-value.cpu { color: #ff6b35; }
+        
+        .game-area {
+            margin: 30px 0;
+        }
+        .choices {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .choice {
+            width: 100px;
+            height: 100px;
+            background: #252532;
+            border: 3px solid #3a3a4a;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 2.5rem;
+        }
+        .choice:hover {
+            transform: scale(1.1);
+            border-color: #00d4ff;
+            background: #2a2a3a;
+        }
+        .choice span {
+            font-size: 0.8rem;
+            color: #a0a0b0;
+            margin-top: 5px;
+        }
+        
+        .result-area {
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .result-text {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        .result-text.win { color: #00ff88; }
+        .result-text.lose { color: #ff4444; }
+        .result-text.draw { color: #ffd700; }
+        
+        .round-result {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .choice-display {
+            text-align: center;
+        }
+        .choice-icon {
+            font-size: 3rem;
+        }
+        .choice-name {
+            color: #a0a0b0;
+            margin-top: 5px;
+        }
+        
+        .btn-restart {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-restart:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo">
+                <img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon">
+                <span class="logo-text">Game Voult</span>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="../../index.html">Home</a></li>
+                <li><a href="../../categories.html">Categories</a></li>
+                <li><a href="../../about.html">About</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Game -->
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Rock Paper Scissors</h1>
+            
+            <div class="score-board">
+                <div class="score">
+                    <div class="score-label">You</div>
+                    <div class="score-value player" id="playerScore">0</div>
+                </div>
+                <div class="score">
+                    <div class="score-label">CPU</div>
+                    <div class="score-value cpu" id="cpuScore">0</div>
+                </div>
+            </div>
+
+            <p style="color: #a0a0b0; margin-bottom: 20px;">Choose your weapon!</p>
+
+            <div class="choices">
+                <div class="choice" onclick="play('rock')">
+                    ✊
+                    <span>Rock</span>
+                </div>
+                <div class="choice" onclick="play('paper')">
+                    ✋
+                    <span>Paper</span>
+                </div>
+                <div class="choice" onclick="play('scissors')">
+                    ✌️
+                    <span>Scissors</span>
+                </div>
+            </div>
+
+            <div class="result-area">
+                <div class="round-result" id="roundResult" style="display: none;">
+                    <div class="choice-display">
+                        <div class="choice-icon" id="playerIcon">✊</div>
+                        <div class="choice-name">You</div>
+                    </div>
+                    <div class="choice-display">
+                        <div class="choice-icon" id="cpuIcon">✊</div>
+                        <div class="choice-name">CPU</div>
+                    </div>
+                </div>
+                <div class="result-text" id="resultText">Make your move!</div>
+            </div>
+
+            <button class="btn-restart" onclick="resetGame()">Reset Scores</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Game Voult</h3>
+                <p>Your ultimate destination for classic browser games.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html">Home</a></li>
+                    <li><a href="../../categories.html">Categories</a></li>
+                    <li><a href="../../about.html">About</a></li>
+                    <li><a href="../../contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Categories</h4>
+                <ul>
+                    <li><a href="../../categories.html?category=single-player">Single Player</a></li>
+                    <li><a href="../../categories.html?category=two-player">Two Player</a></li>
+                    <li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <div class="social-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">Facebook</a>
+                    <a href="#">GitHub</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Game Voult. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const choices = ['rock', 'paper', 'scissors'];
+        const icons = {
+            rock: '✊',
+            paper: '✋',
+            scissors: '✌️'
+        };
+        
+        let playerScore = 0;
+        let cpuScore = 0;
+        let hasPlayed = false;
+
+        function play(playerChoice) {
+            const cpuChoice = choices[Math.floor(Math.random() * 3)];
+            
+            document.getElementById('playerIcon').textContent = icons[playerChoice];
+            document.getElementById('cpuIcon').textContent = icons[cpuChoice];
+            document.getElementById('roundResult').style.display = 'flex';
+            
+            const result = determineWinner(playerChoice, cpuChoice);
+            const resultText = document.getElementById('resultText');
+            
+            if (result === 'win') {
+                playerScore++;
+                resultText.textContent = 'You Win!';
+                resultText.className = 'result-text win';
+            } else if (result === 'lose') {
+                cpuScore++;
+                resultText.textContent = 'You Lose!';
+                resultText.className = 'result-text lose';
+            } else {
+                resultText.textContent = "It's a Draw!";
+                resultText.className = 'result-text draw';
+            }
+            
+            document.getElementById('playerScore').textContent = playerScore;
+            document.getElementById('cpuScore').textContent = cpuScore;
+            hasPlayed = true;
+        }
+
+        function determineWinner(player, cpu) {
+            if (player === cpu) return 'draw';
+            
+            if ((player === 'rock' && cpu === 'scissors') ||
+                (player === 'paper' && cpu === 'rock') ||
+                (player === 'scissors' && cpu === 'paper')) {
+                return 'win';
+            }
+            
+            return 'lose';
+        }
+
+        function resetGame() {
+            playerScore = 0;
+            cpuScore = 0;
+            document.getElementById('playerScore').textContent = 0;
+            document.getElementById('cpuScore').textContent = 0;
+            document.getElementById('resultText').textContent = 'Make your move!';
+            document.getElementById('resultText').className = 'result-text';
+            document.getElementById('roundResult').style.display = 'none';
+            hasPlayed = false;
+        }
+    </script>
+</body>
+</html>
+

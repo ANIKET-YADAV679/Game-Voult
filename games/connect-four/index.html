@@ -14,36 +14,162 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 40px 20px;
+            padding: 20px;
+        }
+        .game-container {
+            background: #1a1a24;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #2a2a3a;
             text-align: center;
         }
-        .game-wrapper h1 {
+        .game-title {
             font-size: 2.5rem;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .game-wrapper .badge {
-            display: inline-block;
-            padding: 8px 20px;
-            background: rgba(255, 107, 53, 0.2);
-            color: #ff6b35;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
+        .game-status {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: #a0a0b0;
+        }
+        .game-status .player-red { color: #ff6b35; font-weight: bold; }
+        .game-status .player-yellow { color: #ffd700; font-weight: bold; }
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
             margin-bottom: 20px;
         }
-        .game-wrapper p {
+        .score {
+            text-align: center;
+        }
+        .score-label {
+            font-size: 0.9rem;
             color: #a0a0b0;
-            max-width: 500px;
-            margin-bottom: 30px;
-            line-height: 1.7;
+            margin-bottom: 5px;
         }
-        .game-wrapper .btn {
-            margin-top: 15px;
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
         }
+        .score-value.red { color: #ff6b35; }
+        .score-value.yellow { color: #ffd700; }
+        
+        .board-container {
+            display: inline-block;
+            background: #3a3a5a;
+            padding: 15px;
+            border-radius: 15px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(7, 60px);
+            grid-template-rows: repeat(6, 60px);
+            gap: 8px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            background: #1a1a24;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .cell::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        .cell:hover::before {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .cell.red::before {
+            background: #ff6b35;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.5);
+        }
+        .cell.yellow::before {
+            background: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+        .cell.winning::before {
+            animation: pulse 0.5s infinite alternate;
+        }
+        @keyframes pulse {
+            from { transform: translate(-50%, -50%) scale(1); }
+            to { transform: translate(-50%, -50%) scale(1.1); }
+        }
+        .column-hover {
+            position: relative;
+        }
+        .column-hover::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .btn-restart {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-restart:hover {
+            transform: scale(1.05);
+        }
+        .winner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .winner-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .winner-content {
+            background: #1a1a24;
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid #2a2a3a;
+        }
+        .winner-text {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .winner-text.red { color: #ff6b35; }
+        .winner-text.yellow { color: #ffd700; }
+        .winner-text.draw { color: #a0a0b0; }
     </style>
 </head>
 <body>
@@ -68,13 +194,39 @@
         </div>
     </nav>
 
-    <!-- Game Placeholder -->
+    <!-- Game -->
     <div class="game-wrapper">
-        <h1>Connect Four</h1>
-        <span class="badge">Two Player</span>
-        <p>The classic Connect Four game is coming soon to Game Voult! Drop colored discs and connect four in a row to win. Challenge a friend and be the first to claim victory!</p>
-        <p>Check back soon for the full game experience!</p>
-        <a href="../../categories.html?category=two-player" class="btn btn-primary">Browse More Games</a>
+        <div class="game-container">
+            <h1 class="game-title">Connect Four</h1>
+            <div class="game-status">
+                <span id="currentPlayer" class="player-red">Red</span>'s Turn
+            </div>
+            
+            <div class="score-board">
+                <div class="score">
+                    <div class="score-label">Red</div>
+                    <div class="score-value red" id="scoreRed">0</div>
+                </div>
+                <div class="score">
+                    <div class="score-label">Yellow</div>
+                    <div class="score-value yellow" id="scoreYellow">0</div>
+                </div>
+            </div>
+
+            <div class="board-container">
+                <div class="board" id="board"></div>
+            </div>
+
+            <button class="btn-restart" onclick="restartGame()">New Game</button>
+        </div>
+    </div>
+
+    <!-- Winner Overlay -->
+    <div class="winner-overlay" id="winnerOverlay">
+        <div class="winner-content">
+            <div class="winner-text" id="winnerText">Red Wins!</div>
+            <button class="btn-restart" onclick="restartGame()">Play Again</button>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -104,9 +256,9 @@
             <div class="footer-section">
                 <h4>Connect</h4>
                 <div class="social-links">
-                    <a href="#" aria-label="Twitter">Twitter</a>
-                    <a href="#" aria-label="Facebook">Facebook</a>
-                    <a href="#" aria-label="GitHub">GitHub</a>
+                    <a href="#">Twitter</a>
+                    <a href="#">Facebook</a>
+                    <a href="#">GitHub</a>
                 </div>
             </div>
         </div>
@@ -115,7 +267,158 @@
         </div>
     </footer>
 
-    <script src="../../app.js"></script>
+    <script>
+        const ROWS = 6;
+        const COLS = 7;
+        
+        let board = [];
+        let currentPlayer = 'red';
+        let gameActive = true;
+        let scoreRed = 0;
+        let scoreYellow = 0;
+
+        const boardElement = document.getElementById('board');
+        const currentPlayerDisplay = document.getElementById('currentPlayer');
+        const winnerOverlay = document.getElementById('winnerOverlay');
+        const winnerText = document.getElementById('winnerText');
+        const scoreRedDisplay = document.getElementById('scoreRed');
+        const scoreYellowDisplay = document.getElementById('scoreYellow');
+
+        function initBoard() {
+            boardElement.innerHTML = '';
+            board = [];
+            
+            for (let row = 0; row < ROWS; row++) {
+                board[row] = [];
+                for (let col = 0; col < COLS; col++) {
+                    board[row][col] = '';
+                    
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.addEventListener('click', () => handleColumnClick(col));
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        function handleColumnClick(col) {
+            if (!gameActive) return;
+
+            for (let row = ROWS - 1; row >= 0; row--) {
+                if (board[row][col] === '') {
+                    board[row][col] = currentPlayer;
+                    updateBoard();
+                    
+                    if (checkWin(row, col)) {
+                        endGame(false);
+                    } else if (checkDraw()) {
+                        endGame(true);
+                    } else {
+                        currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+                        updateCurrentPlayer();
+                    }
+                    break;
+                }
+            }
+        }
+
+        function updateBoard() {
+            const cells = boardElement.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                const value = board[row][col];
+                
+                cell.classList.remove('red', 'yellow', 'winning');
+                if (value) {
+                    cell.classList.add(value);
+                }
+            });
+        }
+
+        function checkWin(row, col) {
+            const directions = [
+                [[0, 1], [0, -1]],   // Horizontal
+                [[1, 0], [-1, 0]],   // Vertical
+                [[1, 1], [-1, -1]], // Diagonal
+                [[1, -1], [-1, 1]]  // Anti-diagonal
+            ];
+
+            for (const [dir1, dir2] of directions) {
+                let count = 1;
+                let winningCells = [[row, col]];
+
+                for (const [dr, dc] of [dir1, dir2]) {
+                    for (let i = 1; i <= 3; i++) {
+                        const r = row + dr * i;
+                        const c = col + dc * i;
+                        
+                        if (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === currentPlayer) {
+                            count++;
+                            winningCells.push([r, c]);
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                if (count >= 4) {
+                    highlightWinningCells(winningCells);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function highlightWinningCells(cells) {
+            const boardCells = boardElement.querySelectorAll('.cell');
+            cells.forEach(([row, col]) => {
+                const index = row * COLS + col;
+                boardCells[index].classList.add('winning');
+            });
+        }
+
+        function checkDraw() {
+            return board.every(row => row.every(cell => cell !== ''));
+        }
+
+        function endGame(draw) {
+            gameActive = false;
+            if (!draw) {
+                if (currentPlayer === 'red') {
+                    scoreRed++;
+                    scoreRedDisplay.textContent = scoreRed;
+                } else {
+                    scoreYellow++;
+                    scoreYellowDisplay.textContent = scoreYellow;
+                }
+                winnerText.textContent = (currentPlayer === 'red' ? 'Red' : 'Yellow') + ' Wins!';
+                winnerText.className = 'winner-text ' + currentPlayer;
+            } else {
+                winnerText.textContent = "It's a Draw!";
+                winnerText.className = 'winner-text draw';
+            }
+            winnerOverlay.classList.add('show');
+        }
+
+        function updateCurrentPlayer() {
+            currentPlayerDisplay.textContent = currentPlayer === 'red' ? 'Red' : 'Yellow';
+            currentPlayerDisplay.className = 'player-' + currentPlayer;
+        }
+
+        function restartGame() {
+            currentPlayer = 'red';
+            gameActive = true;
+            
+            initBoard();
+            winnerOverlay.classList.remove('show');
+            updateCurrentPlayer();
+        }
+
+        initBoard();
+    </script>
 </body>
 </html>
 

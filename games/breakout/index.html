@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Breakout - Game Voult">
+    <title>Breakout | Game Voult</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="icon" href="../../assets/icons/logo.svg" type="image/svg+xml">
+    <style>
+        .game-wrapper {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .game-container {
+            background: #1a1a24;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #2a2a3a;
+            text-align: center;
+        }
+        .game-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .game-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+        .info-item {
+            text-align: center;
+        }
+        .info-label {
+            font-size: 0.9rem;
+            color: #a0a0b0;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        #gameCanvas {
+            border: 3px solid #3a3a4a;
+            border-radius: 10px;
+            background: #0a0a0f;
+        }
+        .controls {
+            margin-top: 20px;
+            color: #a0a0b0;
+            font-size: 0.9rem;
+        }
+        .btn-restart {
+            margin-top: 15px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-restart:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="logo">
+                <img src="../../assets/icons/logo.svg" alt="Game Voult Logo" class="logo-icon">
+                <span class="logo-text">Game Voult</span>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="../../index.html">Home</a></li>
+                <li><a href="../../categories.html">Categories</a></li>
+                <li><a href="../../about.html">About</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Game -->
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1 class="game-title">Breakout</h1>
+            
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">Score</div>
+                    <div class="info-value" id="score">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Level</div>
+                    <div class="info-value" id="level">1</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Lives</div>
+                    <div class="info-value" id="lives">3</div>
+                </div>
+            </div>
+
+            <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+            <div class="controls">
+                Use <strong>Mouse</strong> or <strong>Left/Right Arrow Keys</strong> to move paddle
+            </div>
+
+            <button class="btn-restart" onclick="startGame()">Start Game</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Game Voult</h3>
+                <p>Your ultimate destination for classic browser games.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html">Home</a></li>
+                    <li><a href="../../categories.html">Categories</a></li>
+                    <li><a href="../../about.html">About</a></li>
+                    <li><a href="../../contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Categories</h4>
+                <ul>
+                    <li><a href="../../categories.html?category=single-player">Single Player</a></li>
+                    <li><a href="../../categories.html?category=two-player">Two Player</a></li>
+                    <li><a href="../../categories.html?category=bot-opponent">Bot Opponent</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <div class="social-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">Facebook</a>
+                    <a href="#">GitHub</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Game Voult. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const livesDisplay = document.getElementById('lives');
+
+        const PADDLE_WIDTH = 120;
+        const PADDLE_HEIGHT = 15;
+        const BALL_RADIUS = 8;
+        const BRICK_ROW_COUNT = 5;
+        const BRICK_COL_COUNT = 10;
+        const BRICK_PADDING = 10;
+        const BRICK_OFFSET_TOP = 50;
+        const BRICK_OFFSET_LEFT = 35;
+        const BRICK_WIDTH = 65;
+        const BRICK_HEIGHT = 20;
+
+        let paddleX = canvas.width / 2 - PADDLE_WIDTH / 2;
+        let ballX = canvas.width / 2;
+        let ballY = canvas.height - 30;
+        let ballDX = 4;
+        let ballDY = -4;
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let bricks = [];
+        let gameRunning = false;
+        let gameLoop = null;
+
+        const keys = { left: false, right: false };
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') keys.left = true;
+            if (e.key === 'ArrowRight') keys.right = true;
+        });
+        document.addEventListener('keyup', e => {
+            if (e.key === 'ArrowLeft') keys.left = false;
+            if (e.key === 'ArrowRight') keys.right = false;
+        });
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            paddleX = e.clientX - rect.left - PADDLE_WIDTH / 2;
+        });
+
+        function initBricks() {
+            bricks = [];
+            for (let c = 0; c < BRICK_COL_COUNT; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < BRICK_ROW_COUNT; r++) {
+                    bricks[c][r] = { x: 0, y: 0, status: 1 };
+                }
+            }
+        }
+
+        function startGame() {
+            if (gameLoop) clearInterval(gameLoop);
+            
+            paddleX = canvas.width / 2 - PADDLE_WIDTH / 2;
+            ballX = canvas.width / 2;
+            ballY = canvas.height - 30;
+            ballDX = 4 + level * 0.5;
+            ballDY = -(4 + level * 0.5);
+            score = 0;
+            lives = 3;
+            level = 1;
+            gameRunning = true;
+            
+            initBricks();
+            updateDisplay();
+            
+            gameLoop = setInterval(update, 16);
+        }
+
+        function updateDisplay() {
+            scoreDisplay.textContent = score;
+            levelDisplay.textContent = level;
+            livesDisplay.textContent = lives;
+        }
+
+        function collisionDetection() {
+            for (let c = 0; c < BRICK_COL_COUNT; c++) {
+                for (let r = 0; r < BRICK_ROW_COUNT; r++) {
+                    const b = bricks[c][r];
+                    if (b.status === 1) {
+                        if (ballX > b.x && ballX < b.x + BRICK_WIDTH && 
+                            ballY > b.y && ballY < b.y + BRICK_HEIGHT) {
+                            ballDY = -ballDY;
+                            b.status = 0;
+                            score += 10;
+                            updateDisplay();
+                            
+                            if (score % 500 === 0) {
+                                level++;
+                                ballDX = 4 + level * 0.5;
+                                ballDY = -(4 + level * 0.5);
+                                initBricks();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2);
+            ctx.fillStyle = '#00d4ff';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddleX, canvas.height - PADDLE_HEIGHT - 10, PADDLE_WIDTH, PADDLE_HEIGHT);
+            ctx.fillStyle = '#ff6b35';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawBricks() {
+            for (let c = 0; c < BRICK_COL_COUNT; c++) {
+                for (let r = 0; r < BRICK_ROW_COUNT; r++) {
+                    if (bricks[c][r].status === 1) {
+                        const brickX = c * (BRICK_WIDTH + BRICK_PADDING) + BRICK_OFFSET_LEFT;
+                        const brickY = r * (BRICK_HEIGHT + BRICK_PADDING) + BRICK_OFFSET_TOP;
+                        bricks[c][r].x = brickX;
+                        bricks[c][r].y = brickY;
+                        
+                        ctx.beginPath();
+                        ctx.rect(brickX, brickY, BRICK_WIDTH, BRICK_HEIGHT);
+                        const colors = ['#ff6b35', '#ffd700', '#00d4ff', '#7c3aed', '#00ff88'];
+                        ctx.fillStyle = colors[r];
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBricks();
+            drawBall();
+            drawPaddle();
+        }
+
+        function update() {
+            if (!gameRunning) return;
+
+            draw();
+            collisionDetection();
+
+            // Paddle movement
+            if (keys.left && paddleX > 0) paddleX -= 7;
+            if (keys.right && paddleX < canvas.width - PADDLE_WIDTH) paddleX += 7;
+
+            // Ball movement
+            ballX += ballDX;
+            ballY += ballDY;
+
+            // Wall collisions
+            if (ballX + ballDX > canvas.width - BALL_RADIUS || ballX + ballDX < BALL_RADIUS) {
+                ballDX = -ballDX;
+            }
+            if (ballY + ballDY < BALL_RADIUS) {
+                ballDY = -ballDY;
+            } else if (ballY + ballDY > canvas.height - BALL_RADIUS - PADDLE_HEIGHT - 10) {
+                if (ballX > paddleX && ballX < paddleX + PADDLE_WIDTH) {
+                    ballDY = -ballDY;
+                    const hitPoint = (ballX - paddleX) / PADDLE_WIDTH;
+                    ballDX = (hitPoint - 0.5) * 8;
+                } else if (ballY + ballDY > canvas.height - BALL_RADIUS) {
+                    lives--;
+                    updateDisplay();
+                    if (lives === 0) {
+                        gameRunning = false;
+                        alert('Game Over! Score: ' + score);
+                    } else {
+                        ballX = canvas.width / 2;
+                        ballY = canvas.height - 30;
+                        ballDX = 4 + level * 0.5;
+                        ballDY = -(4 + level * 0.5);
+                        paddleX = canvas.width / 2 - PADDLE_WIDTH / 2;
+                    }
+                }
+            }
+        }
+
+        initBricks();
+        draw();
+    </script>
+</body>
+</html>
+
